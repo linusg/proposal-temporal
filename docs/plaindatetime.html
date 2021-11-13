@@ -293,7 +293,7 @@ Example: in a day-planner UI, the visual height of a meeting may be the same eve
 </ul>
 <p><strong>Returns:</strong> a new <code>Temporal.PlainDateTime</code> object.</p>
 <p>Use this constructor if you have the correct parameters for the datetime already as individual number values in the ISO 8601 calendar.
-Otherwise, <code>Temporal.PlainDateTime.from()</code>, which accepts more kinds of input, allows inputting dates and times in different calendar reckonings, and allows controlling the overflow behaviour, is probably more convenient.</p>
+Otherwise, <code>Temporal.PlainDateTime.from()</code>, which accepts more kinds of input, allows inputting dates and times in different calendar reckonings, and allows controlling the overflow behavior, is probably more convenient.</p>
 <p>All values are given as reckoned in the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.
 Together, <code>isoYear</code>, <code>isoMonth</code>, and <code>isoDay</code> must represent a valid date in that calendar, even if you are passing a different calendar as the <code>calendar</code> parameter, and the time parameters must represent a valid time of day.</p>
 <blockquote>
@@ -404,13 +404,13 @@ dt <span class="token operator">=</span> Temporal<span class="token punctuation"
 <p>Compares two <code>Temporal.PlainDateTime</code> objects.
 Returns an integer indicating whether <code>one</code> comes before or after or is equal to <code>two</code>.</p>
 <ul>
-<li>&minus;1 if <code>one</code> comes before <code>two</code>;</li>
-<li>0 if <code>one</code> and <code>two</code> are the same date and their <code>calendar</code> properties are also the same;</li>
-<li>1 if <code>one</code> comes after <code>two</code>.</li>
+<li>&minus;1 if <code>one</code> comes before <code>two</code></li>
+<li>0 if <code>one</code> and <code>two</code> are the same date and time when projected into the ISO 8601 calendar</li>
+<li>1 if <code>one</code> comes after <code>two</code></li>
 </ul>
 <p>If <code>one</code> and <code>two</code> are not <code>Temporal.PlainDateTime</code> objects, then they will be converted to one as if they were passed to <code>Temporal.PlainDateTime.from()</code>.</p>
-<p>Note that this function will not return 0 if the two objects have different <code>calendar</code> properties, even if the actual dates and times are equal.
-If the dates and times are equal, then <code>.calendar.id</code> will be compared lexicographically, in order to ensure a deterministic sort order.</p>
+<p>Calendars are ignored in the comparison.
+For example, this method returns <code>0</code> for instances that fall on the same day and time in the ISO 8601 calendar, even if their calendars describe it with a different <code>year</code>, <code>month</code>, and/or <code>day</code>.</p>
 <p>This function can be used to sort arrays of <code>Temporal.PlainDateTime</code> objects.
 For example:</p>
 <pre class="language-javascript"><code class="language-javascript">one <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDateTime<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'1995-12-07T03:24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>

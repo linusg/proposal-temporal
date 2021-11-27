@@ -6140,27 +6140,15 @@
         throw new TypeError('with() does not support a timeZone property');
       }
     },
-    TemporalTimeZoneFromString: function TemporalTimeZoneFromString(stringIdent) {
+    ParseTemporalTimeZone: function ParseTemporalTimeZone(stringIdent) {
       var _ES$ParseTemporalTime = ES.ParseTemporalTimeZoneString(stringIdent),
           ianaName = _ES$ParseTemporalTime.ianaName,
           offset = _ES$ParseTemporalTime.offset,
           z = _ES$ParseTemporalTime.z;
 
-      var identifier = ianaName;
-      if (!identifier && z) identifier = 'UTC';
-      if (!identifier) identifier = offset;
-      var result = ES.GetCanonicalTimeZoneIdentifier(identifier);
-
-      if (offset && identifier !== offset) {
-        var ns = ES.ParseTemporalInstant(stringIdent);
-        var offsetNs = ES.GetIANATimeZoneOffsetNanoseconds(ns, result);
-
-        if (ES.FormatTimeZoneOffsetString(offsetNs) !== offset) {
-          throw new RangeError("invalid offset ".concat(offset, "[").concat(ianaName, "]"));
-        }
-      }
-
-      return result;
+      if (ianaName) return ianaName;
+      if (z) return 'UTC';
+      return offset;
     },
     FormatCalendarAnnotation: function FormatCalendarAnnotation(id, showCalendar) {
       if (showCalendar === 'never') return '';
@@ -6274,6 +6262,8 @@
         nanosecond = ES.ToInteger(fraction.slice(6, 9));
         calendar = match[15];
       } else {
+        var z;
+
         var _ES$ParseISODateTime = ES.ParseISODateTime(isoString, {
           zoneRequired: false
         });
@@ -6285,6 +6275,8 @@
         microsecond = _ES$ParseISODateTime.microsecond;
         nanosecond = _ES$ParseISODateTime.nanosecond;
         calendar = _ES$ParseISODateTime.calendar;
+        z = _ES$ParseISODateTime.z;
+        if (z) throw new RangeError('Z designator not supported for PlainTime');
       }
 
       return {
@@ -6308,6 +6300,8 @@
         month = ES.ToInteger(match[2]);
         calendar = match[3];
       } else {
+        var z;
+
         var _ES$ParseISODateTime2 = ES.ParseISODateTime(isoString, {
           zoneRequired: false
         });
@@ -6316,6 +6310,8 @@
         month = _ES$ParseISODateTime2.month;
         calendar = _ES$ParseISODateTime2.calendar;
         referenceISODay = _ES$ParseISODateTime2.day;
+        z = _ES$ParseISODateTime2.z;
+        if (z) throw new RangeError('Z designator not supported for PlainYearMonth');
       }
 
       return {
@@ -6333,6 +6329,8 @@
         month = ES.ToInteger(match[1]);
         day = ES.ToInteger(match[2]);
       } else {
+        var z;
+
         var _ES$ParseISODateTime3 = ES.ParseISODateTime(isoString, {
           zoneRequired: false
         });
@@ -6341,6 +6339,8 @@
         day = _ES$ParseISODateTime3.day;
         calendar = _ES$ParseISODateTime3.calendar;
         referenceISOYear = _ES$ParseISODateTime3.year;
+        z = _ES$ParseISODateTime3.z;
+        if (z) throw new RangeError('Z designator not supported for PlainMonthDay');
       }
 
       return {
@@ -6917,12 +6917,8 @@
       var year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, calendar, timeZone, offset;
 
       if (ES.Type(relativeTo) === 'Object') {
-        if (ES.IsTemporalZonedDateTime(relativeTo) || ES.IsTemporalDateTime(relativeTo)) return relativeTo;
-
-        if (ES.IsTemporalDate(relativeTo)) {
-          return ES.CreateTemporalDateTime(GetSlot(relativeTo, ISO_YEAR), GetSlot(relativeTo, ISO_MONTH), GetSlot(relativeTo, ISO_DAY), 0, 0, 0, 0, 0, 0, GetSlot(relativeTo, CALENDAR));
-        }
-
+        if (ES.IsTemporalZonedDateTime(relativeTo) || ES.IsTemporalDate(relativeTo)) return relativeTo;
+        if (ES.IsTemporalDateTime(relativeTo)) return ES.TemporalDateTimeToDate(relativeTo);
         calendar = ES.GetTemporalCalendarWithISODefault(relativeTo);
         var fieldNames = ES.CalendarFields(calendar, ['day', 'hour', 'microsecond', 'millisecond', 'minute', 'month', 'monthCode', 'nanosecond', 'second', 'year']);
         var fields = ES.ToTemporalDateTimeFields(relativeTo, fieldNames);
@@ -6984,7 +6980,7 @@
         return ES.CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar);
       }
 
-      return ES.CreateTemporalDateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, calendar);
+      return ES.CreateTemporalDate(year, month, day, calendar);
     },
     ValidateTemporalUnitRange: function ValidateTemporalUnitRange(largestUnit, smallestUnit) {
       if (ALLOWED_UNITS.indexOf(largestUnit) > ALLOWED_UNITS.indexOf(smallestUnit)) {
@@ -7223,8 +7219,10 @@
           year = _ES$ParseTemporalDate.year,
           month = _ES$ParseTemporalDate.month,
           day = _ES$ParseTemporalDate.day,
-          calendar = _ES$ParseTemporalDate.calendar;
+          calendar = _ES$ParseTemporalDate.calendar,
+          z = _ES$ParseTemporalDate.z;
 
+      if (z) throw new RangeError('Z designator not supported for PlainDate');
       var TemporalPlainDate = GetIntrinsic('%Temporal.PlainDate%');
       return new TemporalPlainDate(year, month, day, calendar); // include validation
     },
@@ -7296,6 +7294,8 @@
       } else {
         ES.ToTemporalOverflow(options); // validate and ignore
 
+        var z;
+
         var _ES$ParseTemporalDate2 = ES.ParseTemporalDateTimeString(ES.ToString(item));
 
         year = _ES$ParseTemporalDate2.year;
@@ -7308,6 +7308,8 @@
         microsecond = _ES$ParseTemporalDate2.microsecond;
         nanosecond = _ES$ParseTemporalDate2.nanosecond;
         calendar = _ES$ParseTemporalDate2.calendar;
+        z = _ES$ParseTemporalDate2.z;
+        if (z) throw new RangeError('Z designator not supported for PlainDateTime');
         ES.RejectDateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond);
         if (calendar === undefined) calendar = ES.GetISO8601Calendar();
         calendar = ES.ToTemporalCalendar(calendar);
@@ -8003,7 +8005,7 @@
       }
 
       var identifier = ES.ToString(temporalTimeZoneLike);
-      var timeZone = ES.TemporalTimeZoneFromString(identifier);
+      var timeZone = ES.ParseTemporalTimeZone(identifier);
       var TemporalTimeZone = GetIntrinsic('%Temporal.TimeZone%');
       return new TemporalTimeZone(timeZone);
     },
@@ -9081,7 +9083,7 @@
       var calendar;
 
       if (relativeTo) {
-        relativeTo = ES.ToTemporalDateTime(relativeTo);
+        relativeTo = ES.ToTemporalDate(relativeTo);
         calendar = GetSlot(relativeTo, CALENDAR);
       }
 
@@ -9207,7 +9209,7 @@
       var calendar;
 
       if (relativeTo) {
-        relativeTo = ES.ToTemporalDateTime(relativeTo);
+        relativeTo = ES.ToTemporalDate(relativeTo);
         calendar = GetSlot(relativeTo, CALENDAR);
       }
 
@@ -9946,22 +9948,21 @@
         milliseconds = _ES$BalanceDuration4.milliseconds;
         microseconds = _ES$BalanceDuration4.microseconds;
         nanoseconds = _ES$BalanceDuration4.nanoseconds;
-      } else if (ES.IsTemporalDateTime(relativeTo)) {
+      } else if (ES.IsTemporalDate(relativeTo)) {
         var TemporalDuration = GetIntrinsic('%Temporal.Duration%');
         var calendar = GetSlot(relativeTo, CALENDAR);
-        var datePart = ES.CreateTemporalDate(GetSlot(relativeTo, ISO_YEAR), GetSlot(relativeTo, ISO_MONTH), GetSlot(relativeTo, ISO_DAY), calendar);
         var dateDuration1 = new TemporalDuration(y1, mon1, w1, d1, 0, 0, 0, 0, 0, 0);
         var dateDuration2 = new TemporalDuration(y2, mon2, w2, d2, 0, 0, 0, 0, 0, 0);
         var dateAdd = ES.GetMethod(calendar, 'dateAdd');
         var firstAddOptions = ObjectCreate$7(null);
-        var intermediate = ES.CalendarDateAdd(calendar, datePart, dateDuration1, firstAddOptions, dateAdd);
+        var intermediate = ES.CalendarDateAdd(calendar, relativeTo, dateDuration1, firstAddOptions, dateAdd);
         var secondAddOptions = ObjectCreate$7(null);
         var end = ES.CalendarDateAdd(calendar, intermediate, dateDuration2, secondAddOptions, dateAdd);
         var dateLargestUnit = ES.LargerOfTwoTemporalUnits('day', largestUnit);
         var differenceOptions = ObjectCreate$7(null);
         differenceOptions.largestUnit = dateLargestUnit;
 
-        var _ES$CalendarDateUntil2 = ES.CalendarDateUntil(calendar, datePart, end, differenceOptions);
+        var _ES$CalendarDateUntil2 = ES.CalendarDateUntil(calendar, relativeTo, end, differenceOptions);
 
         years = _ES$CalendarDateUntil2.years;
         months = _ES$CalendarDateUntil2.months;
@@ -10251,9 +10252,8 @@
       var options = ObjectCreate$7(null);
       var later = ES.CalendarDateAdd(calendar, relativeTo, duration, options);
       var days = ES.DaysUntil(relativeTo, later);
-      relativeTo = ES.CreateTemporalDateTime(GetSlot(later, ISO_YEAR), GetSlot(later, ISO_MONTH), GetSlot(later, ISO_DAY), GetSlot(relativeTo, ISO_HOUR), GetSlot(relativeTo, ISO_MINUTE), GetSlot(relativeTo, ISO_SECOND), GetSlot(relativeTo, ISO_MILLISECOND), GetSlot(relativeTo, ISO_MICROSECOND), GetSlot(relativeTo, ISO_NANOSECOND), GetSlot(relativeTo, CALENDAR));
       return {
-        relativeTo: relativeTo,
+        relativeTo: later,
         days: days
       };
     },
@@ -10336,9 +10336,10 @@
       if (relativeTo) {
         if (ES.IsTemporalZonedDateTime(relativeTo)) {
           zdtRelative = relativeTo;
-          relativeTo = ES.BuiltinTimeZoneGetPlainDateTimeFor(GetSlot(relativeTo, TIME_ZONE), GetSlot(relativeTo, INSTANT), GetSlot(relativeTo, CALENDAR));
-        } else if (!ES.IsTemporalDateTime(relativeTo)) {
-          throw new TypeError('starting point must be PlainDateTime or ZonedDateTime');
+          var pdt = ES.BuiltinTimeZoneGetPlainDateTimeFor(GetSlot(relativeTo, TIME_ZONE), GetSlot(relativeTo, INSTANT), GetSlot(relativeTo, CALENDAR));
+          relativeTo = ES.TemporalDateTimeToDate(pdt);
+        } else if (!ES.IsTemporalDate(relativeTo)) {
+          throw new TypeError('starting point must be PlainDate or ZonedDateTime');
         }
 
         calendar = GetSlot(relativeTo, CALENDAR);
@@ -10692,7 +10693,7 @@
     SystemTimeZone: function SystemTimeZone() {
       var fmt = new IntlDateTimeFormat$1('en-us');
       var TemporalTimeZone = GetIntrinsic('%Temporal.TimeZone%');
-      return new TemporalTimeZone(ES.TemporalTimeZoneFromString(fmt.resolvedOptions().timeZone));
+      return new TemporalTimeZone(ES.ParseTemporalTimeZone(fmt.resolvedOptions().timeZone));
     },
     ComparisonResult: function ComparisonResult(value) {
       return value < 0 ? -1 : value > 0 ? 1 : value;
@@ -11998,9 +11999,8 @@
             months = result.months,
             weeks = result.weeks,
             days = result.days;
-        var relativeTo = ES.CreateTemporalDateTime(GetSlot(this, ISO_YEAR), GetSlot(this, ISO_MONTH), GetSlot(this, ISO_DAY), 0, 0, 0, 0, 0, 0, GetSlot(this, CALENDAR));
 
-        var _ES$RoundDuration = ES.RoundDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, roundingMode, relativeTo);
+        var _ES$RoundDuration = ES.RoundDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, roundingMode, this);
 
         years = _ES$RoundDuration.years;
         months = _ES$RoundDuration.months;
@@ -12048,9 +12048,7 @@
           return new Duration(-years, -months, -weeks, -days, 0, 0, 0, 0, 0, 0);
         }
 
-        var relativeTo = ES.CreateTemporalDateTime(GetSlot(this, ISO_YEAR), GetSlot(this, ISO_MONTH), GetSlot(this, ISO_DAY), 0, 0, 0, 0, 0, 0, GetSlot(this, CALENDAR));
-
-        var _ES$RoundDuration2 = ES.RoundDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), relativeTo);
+        var _ES$RoundDuration2 = ES.RoundDuration(years, months, weeks, days, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), this);
 
         years = _ES$RoundDuration2.years;
         months = _ES$RoundDuration2.months;
@@ -12560,7 +12558,9 @@
             microseconds = _ES$DifferenceISODate.microseconds,
             nanoseconds = _ES$DifferenceISODate.nanoseconds;
 
-        var _ES$RoundDuration = ES.RoundDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, roundingMode, this);
+        var relativeTo = ES.TemporalDateTimeToDate(this);
+
+        var _ES$RoundDuration = ES.RoundDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, roundingMode, relativeTo);
 
         years = _ES$RoundDuration.years;
         months = _ES$RoundDuration.months;
@@ -12620,7 +12620,9 @@
             microseconds = _ES$DifferenceISODate2.microseconds,
             nanoseconds = _ES$DifferenceISODate2.nanoseconds;
 
-        var _ES$RoundDuration2 = ES.RoundDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), this);
+        var relativeTo = ES.TemporalDateTimeToDate(this);
+
+        var _ES$RoundDuration2 = ES.RoundDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), relativeTo);
 
         years = _ES$RoundDuration2.years;
         months = _ES$RoundDuration2.months;
@@ -14363,9 +14365,8 @@
         if (smallestUnit === 'month' && roundingIncrement === 1) return result;
         var years = result.years,
             months = result.months;
-        var relativeTo = ES.CreateTemporalDateTime(GetSlot(thisDate, ISO_YEAR), GetSlot(thisDate, ISO_MONTH), GetSlot(thisDate, ISO_DAY), 0, 0, 0, 0, 0, 0, calendar);
 
-        var _ES$RoundDuration = ES.RoundDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, roundingMode, relativeTo);
+        var _ES$RoundDuration = ES.RoundDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, roundingMode, thisDate);
 
         years = _ES$RoundDuration.years;
         months = _ES$RoundDuration.months;
@@ -14417,9 +14418,7 @@
           return new Duration(-years, -months, 0, 0, 0, 0, 0, 0, 0, 0);
         }
 
-        var relativeTo = ES.CreateTemporalDateTime(GetSlot(thisDate, ISO_YEAR), GetSlot(thisDate, ISO_MONTH), GetSlot(thisDate, ISO_DAY), 0, 0, 0, 0, 0, 0, calendar);
-
-        var _ES$RoundDuration2 = ES.RoundDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), relativeTo);
+        var _ES$RoundDuration2 = ES.RoundDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0, roundingIncrement, smallestUnit, ES.NegateTemporalRoundingMode(roundingMode), thisDate);
 
         years = _ES$RoundDuration2.years;
         months = _ES$RoundDuration2.months;

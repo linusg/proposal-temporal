@@ -2281,13 +2281,7 @@
   var IsPropertyKey$2 = IsPropertyKey$3;
   var ToObject = ToObject$1;
 
-  /**
-   * 7.3.2 GetV (V, P)
-   * 1. Assert: IsPropertyKey(P) is true.
-   * 2. Let O be ToObject(V).
-   * 3. ReturnIfAbrupt(O).
-   * 4. Return O.[[Get]](P, V).
-   */
+  // https://ecma-international.org/ecma-262/6.0/#sec-getv
 
   var GetV$1 = function GetV(V, P) {
   	// 7.3.2.1
@@ -2387,15 +2381,7 @@
   var IsCallable = IsCallable$1;
   var IsPropertyKey$1 = IsPropertyKey$3;
 
-  /**
-   * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
-   * 1. Assert: IsPropertyKey(P) is true.
-   * 2. Let func be GetV(O, P).
-   * 3. ReturnIfAbrupt(func).
-   * 4. If func is either undefined or null, return undefined.
-   * 5. If IsCallable(func) is false, throw a TypeError exception.
-   * 6. Return func.
-   */
+  // https://ecma-international.org/ecma-262/6.0/#sec-getmethod
 
   var GetMethod$1 = function GetMethod(O, P) {
   	// 7.3.9.1
@@ -6225,6 +6211,7 @@
       }
 
       var calendar = match[20];
+      ES.RejectDateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond);
       return {
         year: year,
         month: month,
@@ -6680,9 +6667,11 @@
       return record;
     },
     ToTemporalOverflow: function ToTemporalOverflow(options) {
+      if (options === undefined) return 'constrain';
       return ES.GetOption(options, 'overflow', ['constrain', 'reject'], 'constrain');
     },
     ToTemporalDisambiguation: function ToTemporalDisambiguation(options) {
+      if (options === undefined) return 'compatible';
       return ES.GetOption(options, 'disambiguation', ['compatible', 'earlier', 'later', 'reject'], 'compatible');
     },
     ToTemporalRoundingMode: function ToTemporalRoundingMode(options, fallback) {
@@ -6701,6 +6690,7 @@
       }
     },
     ToTemporalOffset: function ToTemporalOffset(options, fallback) {
+      if (options === undefined) return fallback;
       return ES.GetOption(options, 'offset', ['prefer', 'use', 'ignore', 'reject'], fallback);
     },
     ToShowCalendarOption: function ToShowCalendarOption(options) {
@@ -7174,9 +7164,7 @@
       });
       return ES.PrepareTemporalFields(bag, entries);
     },
-    ToTemporalDate: function ToTemporalDate(item) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ObjectCreate$7(null);
-
+    ToTemporalDate: function ToTemporalDate(item, options) {
       if (ES.Type(item) === 'Object') {
         if (ES.IsTemporalDate(item)) return item;
 
@@ -7243,8 +7231,7 @@
         nanosecond: nanosecond
       };
     },
-    ToTemporalDateTime: function ToTemporalDateTime(item) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ObjectCreate$7(null);
+    ToTemporalDateTime: function ToTemporalDateTime(item, options) {
       var year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, calendar;
 
       if (ES.Type(item) === 'Object') {
@@ -7330,9 +7317,7 @@
       var TemporalInstant = GetIntrinsic('%Temporal.Instant%');
       return new TemporalInstant(ns);
     },
-    ToTemporalMonthDay: function ToTemporalMonthDay(item) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ObjectCreate$7(null);
-
+    ToTemporalMonthDay: function ToTemporalMonthDay(item, options) {
       if (ES.Type(item) === 'Object') {
         if (ES.IsTemporalMonthDay(item)) return item;
 
@@ -7377,8 +7362,7 @@
       }
 
       var result = ES.CreateTemporalMonthDay(month, day, calendar, referenceISOYear);
-      var canonicalOptions = ObjectCreate$7(null);
-      return ES.MonthDayFromFields(calendar, result, canonicalOptions);
+      return ES.MonthDayFromFields(calendar, result);
     },
     ToTemporalTime: function ToTemporalTime(item) {
       var overflow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'constrain';
@@ -7440,9 +7424,7 @@
       var TemporalPlainTime = GetIntrinsic('%Temporal.PlainTime%');
       return new TemporalPlainTime(hour, minute, second, millisecond, microsecond, nanosecond);
     },
-    ToTemporalYearMonth: function ToTemporalYearMonth(item) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ObjectCreate$7(null);
-
+    ToTemporalYearMonth: function ToTemporalYearMonth(item, options) {
       if (ES.Type(item) === 'Object') {
         if (ES.IsTemporalYearMonth(item)) return item;
 
@@ -7470,8 +7452,7 @@
       }
 
       var result = ES.CreateTemporalYearMonth(year, month, calendar, referenceISODay);
-      var canonicalOptions = ObjectCreate$7(null);
-      return ES.YearMonthFromFields(calendar, result, canonicalOptions);
+      return ES.YearMonthFromFields(calendar, result);
     },
     InterpretISODateTimeOffset: function InterpretISODateTimeOffset(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, offsetBehaviour, offsetNs, timeZone, disambiguation, offsetOpt, matchMinute) {
       var DateTime = GetIntrinsic('%Temporal.PlainDateTime%');
@@ -7530,8 +7511,7 @@
       var instant = ES.DisambiguatePossibleInstants(possibleInstants, timeZone, dt, disambiguation);
       return GetSlot(instant, EPOCHNANOSECONDS);
     },
-    ToTemporalZonedDateTime: function ToTemporalZonedDateTime(item) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ObjectCreate$7(null);
+    ToTemporalZonedDateTime: function ToTemporalZonedDateTime(item, options) {
       var year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, timeZone, offset, calendar;
       var matchMinute = false;
       var offsetBehaviour = 'option';
@@ -8128,12 +8108,12 @@
     ISOYearString: function ISOYearString(year) {
       var yearString;
 
-      if (year < 1000 || year > 9999) {
+      if (year < 0 || year > 9999) {
         var sign = year < 0 ? '-' : '+';
         var yearNumber = MathAbs(year);
         yearString = sign + "000000".concat(yearNumber).slice(-6);
       } else {
-        yearString = "".concat(year);
+        yearString = "0000".concat(year).slice(-4);
       }
 
       return yearString;
@@ -8324,7 +8304,7 @@
       var calendar = GetSlot(monthDay, CALENDAR);
       var calendarID = ES.ToString(calendar);
 
-      if (calendarID !== 'iso8601') {
+      if (showCalendar === 'always' || calendarID !== 'iso8601') {
         var year = ES.ISOYearString(GetSlot(monthDay, ISO_YEAR));
         resultString = "".concat(year, "-").concat(resultString);
       }
@@ -8341,7 +8321,7 @@
       var calendar = GetSlot(yearMonth, CALENDAR);
       var calendarID = ES.ToString(calendar);
 
-      if (calendarID !== 'iso8601') {
+      if (showCalendar === 'always' || calendarID !== 'iso8601') {
         var day = ES.ISODateTimePartString(GetSlot(yearMonth, ISO_DAY));
         resultString += "-".concat(day);
       }
@@ -9060,8 +9040,7 @@
             var dateUntil = ES.GetMethod(calendar, 'dateUntil');
 
             while (MathAbs(years) > 0) {
-              var addOptions = ObjectCreate$7(null);
-              var newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, addOptions, dateAdd);
+              var newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
               var untilOptions = ObjectCreate$7(null);
               untilOptions.largestUnit = 'month';
               var untilResult = ES.CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil);
@@ -9217,8 +9196,7 @@
 
 
             var dateAdd = ES.GetMethod(calendar, 'dateAdd');
-            var addOptions = ObjectCreate$7(null);
-            newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, addOptions, dateAdd);
+            newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
             var dateUntil = ES.GetMethod(calendar, 'dateUntil');
             var untilOptions = ObjectCreate$7(null);
             untilOptions.largestUnit = 'month';
@@ -9229,10 +9207,7 @@
               months -= oneYearMonths;
               years += sign;
               relativeTo = newRelativeTo;
-
-              var _addOptions = ObjectCreate$7(null);
-
-              newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, _addOptions, dateAdd);
+              newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
 
               var _untilOptions = ObjectCreate$7(null);
 
@@ -9632,9 +9607,7 @@
         nanoseconds: nanoseconds
       };
     },
-    DifferenceISODateTime: function DifferenceISODateTime(y1, mon1, d1, h1, min1, s1, ms1, µs1, ns1, y2, mon2, d2, h2, min2, s2, ms2, µs2, ns2, calendar, largestUnit) {
-      var options = arguments.length > 20 && arguments[20] !== undefined ? arguments[20] : ObjectCreate$7(null);
-
+    DifferenceISODateTime: function DifferenceISODateTime(y1, mon1, d1, h1, min1, s1, ms1, µs1, ns1, y2, mon2, d2, h2, min2, s2, ms2, µs2, ns2, calendar, largestUnit, options) {
       var _ES$DifferenceTime = ES.DifferenceTime(h1, min1, s1, ms1, µs1, ns1, h2, min2, s2, ms2, µs2, ns2),
           deltaDays = _ES$DifferenceTime.deltaDays,
           hours = _ES$DifferenceTime.hours,
@@ -9854,10 +9827,8 @@
         var dateDuration1 = new TemporalDuration(y1, mon1, w1, d1, 0, 0, 0, 0, 0, 0);
         var dateDuration2 = new TemporalDuration(y2, mon2, w2, d2, 0, 0, 0, 0, 0, 0);
         var dateAdd = ES.GetMethod(calendar, 'dateAdd');
-        var firstAddOptions = ObjectCreate$7(null);
-        var intermediate = ES.CalendarDateAdd(calendar, relativeTo, dateDuration1, firstAddOptions, dateAdd);
-        var secondAddOptions = ObjectCreate$7(null);
-        var end = ES.CalendarDateAdd(calendar, intermediate, dateDuration2, secondAddOptions, dateAdd);
+        var intermediate = ES.CalendarDateAdd(calendar, relativeTo, dateDuration1, undefined, dateAdd);
+        var end = ES.CalendarDateAdd(calendar, intermediate, dateDuration2, undefined, dateAdd);
         var dateLargestUnit = ES.LargerOfTwoTemporalUnits('day', largestUnit);
         var differenceOptions = ObjectCreate$7(null);
         differenceOptions.largestUnit = dateLargestUnit;
@@ -10149,8 +10120,7 @@
       return ES.DifferenceISODate(GetSlot(earlier, ISO_YEAR), GetSlot(earlier, ISO_MONTH), GetSlot(earlier, ISO_DAY), GetSlot(later, ISO_YEAR), GetSlot(later, ISO_MONTH), GetSlot(later, ISO_DAY), 'day').days;
     },
     MoveRelativeDate: function MoveRelativeDate(calendar, relativeTo, duration) {
-      var options = ObjectCreate$7(null);
-      var later = ES.CalendarDateAdd(calendar, relativeTo, duration, options);
+      var later = ES.CalendarDateAdd(calendar, relativeTo, duration);
       var days = ES.DaysUntil(relativeTo, later);
       return {
         relativeTo: later,
@@ -10277,27 +10247,23 @@
 
             var yearsDuration = new TemporalDuration(years);
             var dateAdd = ES.GetMethod(calendar, 'dateAdd');
-            var firstAddOptions = ObjectCreate$7(null);
-            var yearsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsDuration, firstAddOptions, dateAdd);
+            var yearsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd);
             var yearsMonthsWeeks = new TemporalDuration(years, months, weeks);
-            var secondAddOptions = ObjectCreate$7(null);
-            var yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, secondAddOptions, dateAdd);
+            var yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd);
             var monthsWeeksInDays = ES.DaysUntil(yearsLater, yearsMonthsWeeksLater);
             relativeTo = yearsLater;
             days += monthsWeeksInDays;
-            var thirdAddOptions = ObjectCreate$7(null);
             var daysLater = ES.CalendarDateAdd(calendar, relativeTo, {
               days: days
-            }, thirdAddOptions, dateAdd);
+            }, undefined, dateAdd);
             var untilOptions = ObjectCreate$7(null);
             untilOptions.largestUnit = 'year';
             var yearsPassed = ES.CalendarDateUntil(calendar, relativeTo, daysLater, untilOptions).years;
             years += yearsPassed;
             var oldRelativeTo = relativeTo;
-            var fourthAddOptions = ObjectCreate$7(null);
             relativeTo = ES.CalendarDateAdd(calendar, relativeTo, {
               years: yearsPassed
-            }, fourthAddOptions, dateAdd);
+            }, undefined, dateAdd);
             var daysPassed = ES.DaysUntil(oldRelativeTo, relativeTo);
             days -= daysPassed;
             var oneYear = new TemporalDuration(days < 0 ? -1 : 1);
@@ -10330,15 +10296,11 @@
 
             var _dateAdd = ES.GetMethod(calendar, 'dateAdd');
 
-            var _firstAddOptions = ObjectCreate$7(null);
-
-            var yearsMonthsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonths, _firstAddOptions, _dateAdd);
+            var yearsMonthsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonths, undefined, _dateAdd);
 
             var _yearsMonthsWeeks = new TemporalDuration(years, months, weeks);
 
-            var _secondAddOptions = ObjectCreate$7(null);
-
-            var _yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, _yearsMonthsWeeks, _secondAddOptions, _dateAdd);
+            var _yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, _yearsMonthsWeeks, undefined, _dateAdd);
 
             var weeksInDays = ES.DaysUntil(yearsMonthsLater, _yearsMonthsWeeksLater);
             relativeTo = yearsMonthsLater;
@@ -13232,8 +13194,8 @@
         var ms2 = GetSlot(two, MILLISECONDS);
         var µs2 = GetSlot(two, MICROSECONDS);
         var ns2 = GetSlot(two, NANOSECONDS);
-        var shift1 = ES.CalculateOffsetShift(relativeTo, y1, mon1, w1, d1, h1, min1, s1, ms1, µs1, ns1);
-        var shift2 = ES.CalculateOffsetShift(relativeTo, y2, mon2, w2, d2, h2, min2, s2, ms2, µs2, ns2);
+        var shift1 = ES.CalculateOffsetShift(relativeTo, y1, mon1, w1, d1, 0, 0, 0, 0, 0, 0);
+        var shift2 = ES.CalculateOffsetShift(relativeTo, y2, mon2, w2, d2, 0, 0, 0, 0, 0, 0);
 
         if (y1 !== 0 || y2 !== 0 || mon1 !== 0 || mon2 !== 0 || w1 !== 0 || w2 !== 0) {
           var _ES$UnbalanceDuration3 = ES.UnbalanceDurationRelative(y1, mon1, w1, d1, 'day', relativeTo);

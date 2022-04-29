@@ -2141,7 +2141,7 @@
   	return value;
   };
 
-  var callBind$2 = {exports: {}};
+  var callBind$1 = {exports: {}};
 
   (function (module) {
 
@@ -2190,28 +2190,28 @@
   } else {
   	module.exports.apply = applyBind;
   }
-  }(callBind$2));
+  }(callBind$1));
 
-  var GetIntrinsic$f = getIntrinsic;
+  var GetIntrinsic$e = getIntrinsic;
 
-  var callBind$1 = callBind$2.exports;
+  var callBind = callBind$1.exports;
 
-  var $indexOf = callBind$1(GetIntrinsic$f('String.prototype.indexOf'));
+  var $indexOf = callBind(GetIntrinsic$e('String.prototype.indexOf'));
 
-  var callBound$2 = function callBoundIntrinsic(name, allowMissing) {
-  	var intrinsic = GetIntrinsic$f(name, !!allowMissing);
+  var callBound$3 = function callBoundIntrinsic(name, allowMissing) {
+  	var intrinsic = GetIntrinsic$e(name, !!allowMissing);
   	if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
-  		return callBind$1(intrinsic);
+  		return callBind(intrinsic);
   	}
   	return intrinsic;
   };
 
-  var GetIntrinsic$e = getIntrinsic;
+  var GetIntrinsic$d = getIntrinsic;
 
-  var $Array = GetIntrinsic$e('%Array%');
+  var $Array = GetIntrinsic$d('%Array%');
 
   // eslint-disable-next-line global-require
-  var toStr$4 = !$Array.isArray && callBound$2('Object.prototype.toString');
+  var toStr$4 = !$Array.isArray && callBound$3('Object.prototype.toString');
 
   // https://ecma-international.org/ecma-262/6.0/#sec-isarray
 
@@ -2219,14 +2219,14 @@
   	return toStr$4(argument) === '[object Array]';
   };
 
-  var GetIntrinsic$d = getIntrinsic;
-  var callBound$1 = callBound$2;
+  var GetIntrinsic$c = getIntrinsic;
+  var callBound$2 = callBound$3;
 
-  var $TypeError$6 = GetIntrinsic$d('%TypeError%');
+  var $TypeError$6 = GetIntrinsic$c('%TypeError%');
 
   var IsArray = IsArray$1;
 
-  var $apply = GetIntrinsic$d('%Reflect.apply%', true) || callBound$1('%Function.prototype.apply%');
+  var $apply = GetIntrinsic$c('%Reflect.apply%', true) || callBound$2('%Function.prototype.apply%');
 
   // https://ecma-international.org/ecma-262/6.0/#sec-call
 
@@ -2246,9 +2246,9 @@
   	return typeof argument === 'string' || typeof argument === 'symbol';
   };
 
-  var GetIntrinsic$c = getIntrinsic;
+  var GetIntrinsic$b = getIntrinsic;
 
-  var $TypeError$5 = GetIntrinsic$c('%TypeError%');
+  var $TypeError$5 = GetIntrinsic$b('%TypeError%');
 
   // http://262.ecma-international.org/5.1/#sec-9.10
 
@@ -2261,9 +2261,9 @@
 
   var RequireObjectCoercible$1 = CheckObjectCoercible;
 
-  var GetIntrinsic$b = getIntrinsic;
+  var GetIntrinsic$a = getIntrinsic;
 
-  var $Object = GetIntrinsic$b('%Object%');
+  var $Object = GetIntrinsic$a('%Object%');
 
   var RequireObjectCoercible = RequireObjectCoercible$1;
 
@@ -2274,9 +2274,9 @@
   	return $Object(value);
   };
 
-  var GetIntrinsic$a = getIntrinsic;
+  var GetIntrinsic$9 = getIntrinsic;
 
-  var $TypeError$4 = GetIntrinsic$a('%TypeError%');
+  var $TypeError$4 = GetIntrinsic$9('%TypeError%');
 
   var IsPropertyKey$2 = IsPropertyKey$3;
   var ToObject = ToObject$1;
@@ -2373,9 +2373,9 @@
 
   var IsCallable$1 = isCallable$2;
 
-  var GetIntrinsic$9 = getIntrinsic;
+  var GetIntrinsic$8 = getIntrinsic;
 
-  var $TypeError$3 = GetIntrinsic$9('%TypeError%');
+  var $TypeError$3 = GetIntrinsic$8('%TypeError%');
 
   var GetV = GetV$1;
   var IsCallable = IsCallable$1;
@@ -2408,9 +2408,9 @@
 
   var GetMethod$2 = GetMethod$1;
 
-  var GetIntrinsic$8 = getIntrinsic;
+  var GetIntrinsic$7 = getIntrinsic;
 
-  var $abs$1 = GetIntrinsic$8('%Math.abs%');
+  var $abs$1 = GetIntrinsic$7('%Math.abs%');
 
   // http://262.ecma-international.org/5.1/#sec-5.2
 
@@ -2454,9 +2454,9 @@
 
   var IsInteger$1 = IsInteger;
 
-  var GetIntrinsic$7 = getIntrinsic;
+  var GetIntrinsic$6 = getIntrinsic;
 
-  var $abs = GetIntrinsic$7('%Math.abs%');
+  var $abs = GetIntrinsic$6('%Math.abs%');
 
   // http://262.ecma-international.org/5.1/#sec-5.2
 
@@ -2566,14 +2566,12 @@
   	return $sign(number) * floor(abs(number));
   };
 
-  var GetIntrinsic$6 = getIntrinsic;
+  var callBound$1 = callBound$3;
 
-  var $test = GetIntrinsic$6('RegExp.prototype.test');
-
-  var callBind = callBind$2.exports;
+  var $exec = callBound$1('RegExp.prototype.exec');
 
   var regexTester$1 = function regexTester(regex) {
-  	return callBind($test, regex);
+  	return function test(s) { return $exec(regex, s) !== null; };
   };
 
   var isPrimitive$2 = function isPrimitive(value) {
@@ -2737,7 +2735,7 @@
   var $RegExp = GetIntrinsic$5('%RegExp%');
   var $parseInteger = GetIntrinsic$5('%parseInt%');
 
-  var callBound = callBound$2;
+  var callBound = callBound$3;
   var regexTester = regexTester$1;
   var isPrimitive = isPrimitive$2;
 
@@ -6954,7 +6952,7 @@
         matchMinutes = true;
       }
 
-      if (timeZone) {
+      if (timeZone !== undefined) {
         timeZone = ES.ToTemporalTimeZone(timeZone);
         var offsetNs = 0;
         if (offsetBehaviour === 'option') offsetNs = ES.ParseTimeZoneOffsetString(ES.ToString(offset));
@@ -7180,7 +7178,7 @@
 
         var fieldNames = ES.CalendarFields(_calendar, ['day', 'month', 'monthCode', 'year']);
         var fields = ES.ToTemporalDateFields(item, fieldNames);
-        return ES.DateFromFields(_calendar, fields, options);
+        return ES.CalendarDateFromFields(_calendar, fields, options);
       }
 
       ES.ToTemporalOverflow(options); // validate and ignore
@@ -7206,7 +7204,7 @@
           nanosecond = _ES$ToTemporalTimeRec.nanosecond;
 
       var overflow = ES.ToTemporalOverflow(options);
-      var date = ES.DateFromFields(calendar, fields, options);
+      var date = ES.CalendarDateFromFields(calendar, fields, options);
       var year = GetSlot(date, ISO_YEAR);
       var month = GetSlot(date, ISO_MONTH);
       var day = GetSlot(date, ISO_DAY);
@@ -7342,7 +7340,7 @@
           fields.year = 1972;
         }
 
-        return ES.MonthDayFromFields(_calendar2, fields, options);
+        return ES.CalendarMonthDayFromFields(_calendar2, fields, options);
       }
 
       ES.ToTemporalOverflow(options); // validate and ignore
@@ -7362,7 +7360,7 @@
       }
 
       var result = ES.CreateTemporalMonthDay(month, day, calendar, referenceISOYear);
-      return ES.MonthDayFromFields(calendar, result);
+      return ES.CalendarMonthDayFromFields(calendar, result);
     },
     ToTemporalTime: function ToTemporalTime(item) {
       var overflow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'constrain';
@@ -7432,7 +7430,7 @@
 
         var fieldNames = ES.CalendarFields(_calendar3, ['month', 'monthCode', 'year']);
         var fields = ES.ToTemporalYearMonthFields(item, fieldNames);
-        return ES.YearMonthFromFields(_calendar3, fields, options);
+        return ES.CalendarYearMonthFromFields(_calendar3, fields, options);
       }
 
       ES.ToTemporalOverflow(options); // validate and ignore
@@ -7452,7 +7450,7 @@
       }
 
       var result = ES.CreateTemporalYearMonth(year, month, calendar, referenceISODay);
-      return ES.YearMonthFromFields(calendar, result);
+      return ES.CalendarYearMonthFromFields(calendar, result);
     },
     InterpretISODateTimeOffset: function InterpretISODateTimeOffset(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, offsetBehaviour, offsetNs, timeZone, disambiguation, offsetOpt, matchMinute) {
       var DateTime = GetIntrinsic('%Temporal.PlainDateTime%');
@@ -7911,19 +7909,19 @@
         throw new RangeError('irreconcilable calendars');
       }
     },
-    DateFromFields: function DateFromFields(calendar, fields, options) {
+    CalendarDateFromFields: function CalendarDateFromFields(calendar, fields, options) {
       var dateFromFields = ES.GetMethod(calendar, 'dateFromFields');
       var result = ES.Call(dateFromFields, calendar, [fields, options]);
       if (!ES.IsTemporalDate(result)) throw new TypeError('invalid result');
       return result;
     },
-    YearMonthFromFields: function YearMonthFromFields(calendar, fields, options) {
+    CalendarYearMonthFromFields: function CalendarYearMonthFromFields(calendar, fields, options) {
       var yearMonthFromFields = ES.GetMethod(calendar, 'yearMonthFromFields');
       var result = ES.Call(yearMonthFromFields, calendar, [fields, options]);
       if (!ES.IsTemporalYearMonth(result)) throw new TypeError('invalid result');
       return result;
     },
-    MonthDayFromFields: function MonthDayFromFields(calendar, fields, options) {
+    CalendarMonthDayFromFields: function CalendarMonthDayFromFields(calendar, fields, options) {
       var monthDayFromFields = ES.GetMethod(calendar, 'monthDayFromFields');
       var result = ES.Call(monthDayFromFields, calendar, [fields, options]);
       if (!ES.IsTemporalMonthDay(result)) throw new TypeError('invalid result');
@@ -11807,7 +11805,7 @@
         fields = ES.CalendarMergeFields(calendar, fields, props);
         fields = ES.ToTemporalDateFields(fields, fieldNames);
         options = ES.GetOptionsObject(options);
-        return ES.DateFromFields(calendar, fields, options);
+        return ES.CalendarDateFromFields(calendar, fields, options);
       }
     }, {
       key: "withCalendar",
@@ -12037,7 +12035,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['monthCode', 'year']);
         var fields = ES.ToTemporalYearMonthFields(this, fieldNames);
-        return ES.YearMonthFromFields(calendar, fields);
+        return ES.CalendarYearMonthFromFields(calendar, fields);
       }
     }, {
       key: "toPlainMonthDay",
@@ -12046,7 +12044,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['day', 'monthCode']);
         var fields = ES.ToTemporalMonthDayFields(this, fieldNames);
-        return ES.MonthDayFromFields(calendar, fields);
+        return ES.CalendarMonthDayFromFields(calendar, fields);
       }
     }, {
       key: "getISOFields",
@@ -12643,7 +12641,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['monthCode', 'year']);
         var fields = ES.ToTemporalYearMonthFields(this, fieldNames);
-        return ES.YearMonthFromFields(calendar, fields);
+        return ES.CalendarYearMonthFromFields(calendar, fields);
       }
     }, {
       key: "toPlainMonthDay",
@@ -12652,7 +12650,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['day', 'monthCode']);
         var fields = ES.ToTemporalMonthDayFields(this, fieldNames);
-        return ES.MonthDayFromFields(calendar, fields);
+        return ES.CalendarMonthDayFromFields(calendar, fields);
       }
     }, {
       key: "toPlainTime",
@@ -13281,7 +13279,7 @@
         fields = ES.CalendarMergeFields(calendar, fields, props);
         fields = ES.ToTemporalMonthDayFields(fields, fieldNames);
         options = ES.GetOptionsObject(options);
-        return ES.MonthDayFromFields(calendar, fields, options);
+        return ES.CalendarMonthDayFromFields(calendar, fields, options);
       }
     }, {
       key: "equals",
@@ -13366,7 +13364,7 @@
         mergedFields = ES.PrepareTemporalFields(mergedFields, mergedEntries);
         var options = ObjectCreate$3(null);
         options.overflow = 'reject';
-        return ES.DateFromFields(calendar, mergedFields, options);
+        return ES.CalendarDateFromFields(calendar, mergedFields, options);
       }
     }, {
       key: "getISOFields",
@@ -14095,7 +14093,7 @@
         fields = ES.CalendarMergeFields(calendar, fields, props);
         fields = ES.ToTemporalYearMonthFields(fields, fieldNames);
         options = ES.GetOptionsObject(options);
-        return ES.YearMonthFromFields(calendar, fields, options);
+        return ES.CalendarYearMonthFromFields(calendar, fields, options);
       }
     }, {
       key: "add",
@@ -14123,7 +14121,7 @@
         var fields = ES.ToTemporalYearMonthFields(this, fieldNames);
         var sign = ES.DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0);
         var day = sign < 0 ? ES.ToPositiveInteger(ES.CalendarDaysInMonth(calendar, this)) : 1;
-        var startDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, fields), {}, {
+        var startDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, fields), {}, {
           day: day
         }));
 
@@ -14133,7 +14131,7 @@
           days: days
         }), options);
         var addedDateFields = ES.ToTemporalYearMonthFields(addedDate, fieldNames);
-        return ES.YearMonthFromFields(calendar, addedDateFields, optionsCopy);
+        return ES.CalendarYearMonthFromFields(calendar, addedDateFields, optionsCopy);
       }
     }, {
       key: "subtract",
@@ -14174,7 +14172,7 @@
         var fields = ES.ToTemporalYearMonthFields(this, fieldNames);
         var sign = ES.DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0);
         var day = sign < 0 ? ES.ToPositiveInteger(ES.CalendarDaysInMonth(calendar, this)) : 1;
-        var startDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, fields), {}, {
+        var startDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, fields), {}, {
           day: day
         }));
 
@@ -14184,7 +14182,7 @@
           days: days
         }), options);
         var addedDateFields = ES.ToTemporalYearMonthFields(addedDate, fieldNames);
-        return ES.YearMonthFromFields(calendar, addedDateFields, optionsCopy);
+        return ES.CalendarYearMonthFromFields(calendar, addedDateFields, optionsCopy);
       }
     }, {
       key: "until",
@@ -14210,10 +14208,10 @@
         var fieldNames = ES.CalendarFields(calendar, ['monthCode', 'year']);
         var otherFields = ES.ToTemporalYearMonthFields(other, fieldNames);
         var thisFields = ES.ToTemporalYearMonthFields(this, fieldNames);
-        var otherDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, otherFields), {}, {
+        var otherDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, otherFields), {}, {
           day: 1
         }));
-        var thisDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, thisFields), {}, {
+        var thisDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, thisFields), {}, {
           day: 1
         }));
 
@@ -14257,10 +14255,10 @@
         var fieldNames = ES.CalendarFields(calendar, ['monthCode', 'year']);
         var otherFields = ES.ToTemporalYearMonthFields(other, fieldNames);
         var thisFields = ES.ToTemporalYearMonthFields(this, fieldNames);
-        var otherDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, otherFields), {}, {
+        var otherDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, otherFields), {}, {
           day: 1
         }));
-        var thisDate = ES.DateFromFields(calendar, _objectSpread2(_objectSpread2({}, thisFields), {}, {
+        var thisDate = ES.CalendarDateFromFields(calendar, _objectSpread2(_objectSpread2({}, thisFields), {}, {
           day: 1
         }));
 
@@ -14367,7 +14365,7 @@
         mergedFields = ES.PrepareTemporalFields(mergedFields, mergedEntries);
         var options = ObjectCreate$1(null);
         options.overflow = 'reject';
-        return ES.DateFromFields(calendar, mergedFields, options);
+        return ES.CalendarDateFromFields(calendar, mergedFields, options);
       }
     }, {
       key: "getISOFields",
@@ -14703,7 +14701,7 @@
         var temporalTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
         if (!ES.IsTemporalZonedDateTime(this)) throw new TypeError('invalid receiver');
         var PlainTime = GetIntrinsic('%Temporal.PlainTime%');
-        temporalTime = temporalTime == undefined ? new PlainTime() : ES.ToTemporalTime(temporalTime);
+        temporalTime = temporalTime === undefined ? new PlainTime() : ES.ToTemporalTime(temporalTime);
         var thisDt = dateTime(this);
         var year = GetSlot(thisDt, ISO_YEAR);
         var month = GetSlot(thisDt, ISO_MONTH);
@@ -15152,7 +15150,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['monthCode', 'year']);
         var fields = ES.ToTemporalYearMonthFields(this, fieldNames);
-        return ES.YearMonthFromFields(calendar, fields);
+        return ES.CalendarYearMonthFromFields(calendar, fields);
       }
     }, {
       key: "toPlainMonthDay",
@@ -15161,7 +15159,7 @@
         var calendar = GetSlot(this, CALENDAR);
         var fieldNames = ES.CalendarFields(calendar, ['day', 'monthCode']);
         var fields = ES.ToTemporalMonthDayFields(this, fieldNames);
-        return ES.MonthDayFromFields(calendar, fields);
+        return ES.CalendarMonthDayFromFields(calendar, fields);
       }
     }, {
       key: "getISOFields",

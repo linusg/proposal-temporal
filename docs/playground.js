@@ -3110,6 +3110,7 @@
   var ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
   var ObjectIs = Object.is;
   var ObjectEntries$1 = Object.entries;
+  var StringPrototypeSlice = String.prototype.slice;
   var DAY_SECONDS = 86400;
   var DAY_NANOS = bigInt(DAY_SECONDS).multiply(1e9);
   var NS_MIN = bigInt(-DAY_SECONDS).multiply(1e17);
@@ -3417,20 +3418,23 @@
           nanosecond: nanosecond,
           calendar: calendar
         };
-      } // slow but non-grammar-dependent way to ensure that time-only strings that
-      // are also valid PlainMonthDay and PlainYearMonth throw. corresponds to
-      // assertion in spec text
+      } // Reject strings that are ambiguous with PlainMonthDay or PlainYearMonth.
+      // The calendar suffix is `[u-ca=${calendar}]`, i.e. calendar plus 7 characters,
+      // and must be stripped so presence of a calendar doesn't result in interpretation
+      // of otherwise ambiguous input as a time.
 
+
+      var isoStringWithoutCalendar = calendar ? ES.Call(StringPrototypeSlice, isoString, [0, -(calendar.length + 7)]) : isoString;
 
       try {
-        var _ES$ParseTemporalMont = ES.ParseTemporalMonthDayString(isoString),
+        var _ES$ParseTemporalMont = ES.ParseTemporalMonthDayString(isoStringWithoutCalendar),
             month = _ES$ParseTemporalMont.month,
             day = _ES$ParseTemporalMont.day;
 
         ES.RejectISODate(1972, month, day);
       } catch (_unused2) {
         try {
-          var _ES$ParseTemporalYear = ES.ParseTemporalYearMonthString(isoString),
+          var _ES$ParseTemporalYear = ES.ParseTemporalYearMonthString(isoStringWithoutCalendar),
               year = _ES$ParseTemporalYear.year,
               _month = _ES$ParseTemporalYear.month;
 
@@ -5635,6 +5639,20 @@
       return result;
     },
     GetIANATimeZonePreviousTransition: function GetIANATimeZonePreviousTransition(epochNanoseconds, id) {
+      // Optimization: if the instant is more than a year in the future and there
+      // are no transitions between the present day and a year from now, assume
+      // there are none after
+      var now = ES.SystemUTCEpochNanoSeconds();
+      var yearLater = now.plus(DAY_NANOS.multiply(366));
+
+      if (epochNanoseconds.gt(yearLater)) {
+        var prevBeforeNextYear = ES.GetIANATimeZonePreviousTransition(yearLater, id);
+
+        if (prevBeforeNextYear === null || prevBeforeNextYear.lt(now)) {
+          return prevBeforeNextYear;
+        }
+      }
+
       var lowercap = BEFORE_FIRST_DST; // 1847-01-01T00:00:00Z
 
       var rightNanos = bigInt(epochNanoseconds).minus(1);
@@ -9266,6 +9284,7 @@
   var _excluded = ["month", "monthCode", "year", "era", "eraYear"];
   var ArrayIncludes = Array.prototype.includes;
   var ArrayPrototypePush$1 = Array.prototype.push;
+  var ArrayPrototypeSort = Array.prototype.sort;
   var IntlDateTimeFormat = globalThis.Intl.DateTimeFormat;
   var ArraySort = Array.prototype.sort;
   var MathAbs = Math.abs;
@@ -11907,9 +11926,10 @@
   var nonIsoGeneralImpl = {
     dateFromFields: function dateFromFields(fields, options, calendar) {
       var overflow = ES.ToTemporalOverflow(options);
-      var cache = new OneObjectCache(); // Intentionally alphabetical
-
-      fields = ES.PrepareTemporalFields(fields, ['day', 'era', 'eraYear', 'month', 'monthCode', 'year'], ['day']);
+      var cache = new OneObjectCache();
+      var fieldNames = this.fields(['day', 'month', 'monthCode', 'year']);
+      ES.Call(ArrayPrototypeSort, fieldNames, []);
+      fields = ES.PrepareTemporalFields(fields, fieldNames, []);
 
       var _this$helper$calendar = this.helper.calendarToIsoDate(fields, overflow, cache),
           year = _this$helper$calendar.year,
@@ -11922,9 +11942,10 @@
     },
     yearMonthFromFields: function yearMonthFromFields(fields, options, calendar) {
       var overflow = ES.ToTemporalOverflow(options);
-      var cache = new OneObjectCache(); // Intentionally alphabetical
-
-      fields = ES.PrepareTemporalFields(fields, ['era', 'eraYear', 'month', 'monthCode', 'year'], []);
+      var cache = new OneObjectCache();
+      var fieldNames = this.fields(['month', 'monthCode', 'year']);
+      ES.Call(ArrayPrototypeSort, fieldNames, []);
+      fields = ES.PrepareTemporalFields(fields, fieldNames, []);
 
       var _this$helper$calendar2 = this.helper.calendarToIsoDate(_objectSpread2(_objectSpread2({}, fields), {}, {
         day: 1
@@ -11940,13 +11961,13 @@
       return result;
     },
     monthDayFromFields: function monthDayFromFields(fields, options, calendar) {
-      var overflow = ES.ToTemporalOverflow(options); // All built-in calendars require `day`, but some allow other fields to be
-      // substituted for `month`. And for lunisolar calendars, either `monthCode`
-      // or `year` must be provided because `month` is ambiguous without a year or
-      // a code.
+      var overflow = ES.ToTemporalOverflow(options);
+      var cache = new OneObjectCache(); // For lunisolar calendars, either `monthCode` or `year` must be provided
+      // because `month` is ambiguous without a year or a code.
 
-      var cache = new OneObjectCache();
-      fields = ES.PrepareTemporalFields(fields, ['day', 'era', 'eraYear', 'month', 'monthCode', 'year'], ['day']);
+      var fieldNames = this.fields(['day', 'month', 'monthCode', 'year']);
+      ES.Call(ArrayPrototypeSort, fieldNames, []);
+      fields = ES.PrepareTemporalFields(fields, fieldNames, []);
 
       var _this$helper$monthDay = this.helper.monthDayFromFields(fields, overflow, cache),
           year = _this$helper$monthDay.year,

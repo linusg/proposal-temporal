@@ -18,13 +18,11 @@
         header(x) {
           for (const type of [
             Temporal.Instant,
-            Temporal.Calendar,
             Temporal.PlainDate,
             Temporal.PlainDateTime,
             Temporal.Duration,
             Temporal.PlainMonthDay,
             Temporal.PlainTime,
-            Temporal.TimeZone,
             Temporal.PlainYearMonth
           ]) {
             if (x instanceof type) return ['span', {}, `${x[Symbol.toStringTag]} <${x}>`];
@@ -111,19 +109,9 @@
       }
       .heading-link:hover { text-decoration: none; }
       .heading-link::before { content: '¶'; }
-      h3:hover .heading-link { opacity: 1; }
+      h2:hover .heading-link, h3:hover .heading-link, h4:hover .heading-link, h5:hover .heading-link { opacity: 0.75; }
       .banner {
-        /* Gradient from https://joshnh.com/weblog/how-to-make-an-alert-bar/ */
-        background-color: #fce94f;
-        background-image: linear-gradient(135deg,
-                                          transparent,
-                                          transparent 25%,
-                                          rgba(0, 0, 0, .05) 25%,
-                                          rgba(0, 0, 0, .05) 50%,
-                                          transparent 50%,
-                                          transparent 75%,
-                                          rgba(0, 0, 0, .05) 75%,
-                                          rgba(0, 0, 0, .05));
+        background-color: #ffcc7a;
         background-size: 20px 20px;
         box-shadow: 0 5px 0 rgba(0, 0, 0, .1);
         left: 0;
@@ -137,11 +125,12 @@
   </head>
   <body>
     <div class="banner">
-      This Stage 3 proposal is <strong><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">experimental.</a></strong>
-      <strong>Do</strong> try it and <a href="https://github.com/tc39/proposal-temporal/issues">report bugs</a>; <strong>don't</strong> use it in production!
+      Please visit Temporal documentation on <strong>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal">MDN,</a>
+      </strong> the main API reference going forward.
+      Or see our <strong><a href="cookbook.html">cookbook</a></strong>.
     </div>
-<h1 id="temporalplainmonthday">Temporal.PlainMonthDay</h1>
-<details>
+<h1 id="temporalplainmonthday"><a class="heading-link" href="#temporalplainmonthday"></a>Temporal.PlainMonthDay</h3><details>
   <summary><strong>Table of Contents</strong></summary>
 <ul>
 <li><a href="#constructor">Constructor</a>
@@ -162,7 +151,7 @@
 </li>
 <li><a href="#day">day</a>
 </li>
-<li><a href="#calendar">calendar</a>
+<li><a href="#calendarId">calendarId</a>
 </li>
 </ul>
 </li>
@@ -182,8 +171,6 @@
 </li>
 <li><a href="#toPlainDate">toPlainDate</a>
 </li>
-<li><a href="#getISOFields">getISOFields</a>
-</li>
 </ul>
 </li>
 </ul>
@@ -193,12 +180,11 @@
 For example, it could be used to represent a yearly recurring event, like &quot;Bastille Day is on the 14th of July.&quot;</p>
 <p>If you need to refer to a certain instance of a calendar event, in a particular year, use <code>Temporal.PlainDate</code> or even <code>Temporal.PlainDateTime</code>.
 A <code>Temporal.PlainMonthDay</code> can be converted into a <code>Temporal.PlainDate</code> by combining it with a year, using the <code>toPlainDate()</code> method.</p>
-<h2 id="constructor">Constructor</h2>
-<h3 id="new-Temporal-PlainMonthDay"><a class="heading-link" href="#new-Temporal-PlainMonthDay"></a><strong>new Temporal.PlainMonthDay</strong>(<em>isoMonth</em>: number, <em>isoDay</em>: number, <em>calendar</em>?: string | object, <em>referenceISOYear</em>?: number) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
+<h2 id="constructor"><a class="heading-link" href="#constructor"></a>Constructor</h3><h3 id="new-Temporal-PlainMonthDay"><a class="heading-link" href="#new-Temporal-PlainMonthDay"></a><strong>new Temporal.PlainMonthDay</strong>(<em>isoMonth</em>: number, <em>isoDay</em>: number, <em>calendar</em>: string = &quot;iso8601&quot;, <em>referenceISOYear</em>: number = 1972) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>isoMonth</code> (number): A month, ranging between 1 and 12 inclusive.</li>
 <li><code>isoDay</code> (number): A day of the month, ranging between 1 and 31 inclusive.</li>
-<li><code>calendar</code> (optional <code>Temporal.Calendar</code>, plain object, or string): A calendar to project the date into.</li>
+<li><code>calendar</code> (optional string): A calendar to project the date into.</li>
 <li><code>referenceISOYear</code> (optional for ISO 8601 calendar; required for other calendars):
 A reference year in the ISO 8601 calendar for disambiguation when implementing calendar systems.
 The default for the ISO 8601 calendar is the first leap year after the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>.
@@ -207,9 +193,11 @@ This value is required for other calendar systems. If you don&#39;t know what to
 <p><strong>Returns:</strong> a new <code>Temporal.PlainMonthDay</code> object.</p>
 <blockquote>
 <p>The <code>calendar</code> and <code>referenceISOYear</code> parameters should be avoided because <code>equals</code> or <code>compare</code> will consider <code>new Temporal.PlainMonthDay(3, 14, &#39;iso8601&#39;, 1977)</code> and <code>new Temporal.PlainMonthDay(3, 14, &#39;iso8601&#39;, 2000)</code> unequal even though they refer to the same month and day.
-When creating instances for non-ISO-8601 calendars (except when implementing a custom calendar) use the <code>from()</code> method which will automatically set a valid and <code>equals</code>-compatible reference year.</p>
+When creating instances for non-ISO-8601 calendars use the <code>from()</code> method which will automatically set a valid and <code>equals</code>-compatible reference year.</p>
 </blockquote>
-<p>All values are given as reckoned in the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.</p>
+<p>All values are given as reckoned in the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.
+Together, <code>referenceISOYear</code>, <code>isoMonth</code>, and <code>isoDay</code> must represent a valid date in that calendar, even if you are passing a different calendar as the <code>calendar</code> parameter.</p>
+<p><code>calendar</code> is a string containing the identifier of a built-in calendar, such as <code>&#39;islamic&#39;</code> or <code>&#39;gregory&#39;</code>.</p>
 <p>The <code>referenceISOYear</code> ensures that month/day combinations like February 29 (a leap day in the ISO 8601 calendar) or 15 Adar I (in a leap month in the Hebrew calendar) can be used for <code>Temporal.PlainMonthDay</code>, even though those dates don&#39;t occur every calendar year.
 <code>referenceISOYear</code> corresponds to a calendar year where this month and day actually exist.</p>
 <blockquote>
@@ -219,15 +207,14 @@ When creating instances for non-ISO-8601 calendars (except when implementing a c
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Pi day</span>
 md <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainMonthDay</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">14</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 03-14</span>
 <span class="token comment">// Leap day</span>
-md <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainMonthDay</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">29</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 02-29</span></code></pre><h2 id="static-methods">Static methods</h2>
-<h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainMonthDay.<strong>from</strong>(<em>thing</em>: any, <em>options</em>?: object) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
+md <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainMonthDay</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">29</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 02-29</span></code></pre><h2 id="static-methods"><a class="heading-link" href="#static-methods"></a>Static methods</h3><h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainMonthDay.<strong>from</strong>(<em>item</em>: Temporal.PlainMonthDay | object | string, <em>options</em>?: object) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
 <ul>
-<li><code>thing</code>: The value representing the desired date.</li>
+<li><code>item</code>: a value convertible to a <code>Temporal.PlainMonthDay</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for constructing the date.
 The following options are recognized:<ul>
-<li><code>overflow</code> (string): How to deal with out-of-range values if <code>thing</code> is an object.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+<li><code>overflow</code> (string): How to deal with out-of-range values if <code>item</code> is an object.
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -241,24 +228,28 @@ If the value is any other object, it:</p>
 If <code>month</code> is used and <code>calendar</code> is provided, then <code>year</code> must be provided as well because <code>month</code> is ambiguous in some calendars without knowing the year.</li>
 <li>May have a <code>calendar</code> property. If omitted, the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a> will be used by default.</li>
 </ul>
-<p>Any non-object value will be converted to a string, which is expected to be in ISO 8601 format.
+<p>If the value is not an object, it must be a string, which is expected to be in RFC 9557 format, or a subset of that format that includes at least the month and day.
 For the ISO 8601 calendar, only the month and day will be parsed from the string.
 For other calendars, the year and calendar are also parsed in addition to month and day.
 Any other parts of the string are optional and will be ignored.</p>
-<p>If the string isn&#39;t valid according to ISO 8601, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.
+<p>Note that ISO 8601 and RFC 3339 formats are also subsets of RFC 9557, so will also work.
+Temporal additionally accepts a few ISO 8601 extensions that RFC 9557 does not, like the use of 6-digit years.
+For more info, see <a href="https://tc39.es/proposal-temporal/#sec-temporal-iso8601grammar">RFC 9557 / ISO 8601 Grammar</a>.</p>
+<p>If the string isn&#39;t a valid subset of the RFC 9557 format, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.
 A <code>RangeError</code> will also be thrown for strings that contain a <code>Z</code> in place of a numeric UTC offset, because interpreting these strings as a local date is usually a bug.</p>
-<p>The <code>overflow</code> option works as follows, if <code>thing</code> is an object:</p>
+<p>The <code>overflow</code> option works as follows, if <code>item</code> is an object:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), any out-of-range values are clamped to the nearest in-range value, with &quot;nearest&quot; defined by the calendar.</li>
-<li>In <code>reject</code> mode, the presence of out-of-range values will cause the function to throw a <code>RangeError</code>.
+<li>In <code>&#39;constrain&#39;</code> mode (the default), any out-of-range values are clamped to the nearest in-range value, with &quot;nearest&quot; defined by the calendar.</li>
+<li>In <code>&#39;reject&#39;</code> mode, the presence of out-of-range values will cause the function to throw a <code>RangeError</code>.
 If <code>day</code>, <code>month</code> and <code>year</code> are provided, that calendar date must exist in the provided calendar or a <code>RangeError</code> will be thrown.</li>
 </ul>
-<p>The <code>overflow</code> option is ignored if <code>thing</code> is a string.</p>
+<p>The <code>overflow</code> option is ignored if <code>item</code> is a string.</p>
 <blockquote>
-<p><strong>NOTE</strong>: The allowed values for the <code>thing.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
+<p><strong>NOTE</strong>: The allowed values for the <code>item.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
 </blockquote>
 <p>Example usage:</p>
 <pre class="language-javascript"><code class="language-javascript">md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span>
+md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'0824'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span>
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span>
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24T15:43:27'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span>
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24T15:43:27+01:00[Europe/Brussels]'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -280,7 +271,7 @@ md <span class="token operator">=</span> Temporal<span class="token punctuation"
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">32</span><span class="token punctuation">,</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2000</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">overflow</span><span class="token operator">:</span> <span class="token string">'reject'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// => throws</span>
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">29</span><span class="token punctuation">,</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2001</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">overflow</span><span class="token operator">:</span> <span class="token string">'reject'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">// => throws (this year is not a leap year in the ISO calendar)</span>
+<span class="token comment">// => throws (this year is not a leap year in the ISO 8601 calendar)</span>
 
 <span class="token comment">// non-ISO calendars</span>
 md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">monthCode</span><span class="token operator">:</span> <span class="token string">'M05L'</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">15</span><span class="token punctuation">,</span> <span class="token literal-property property">calendar</span><span class="token operator">:</span> <span class="token string">'hebrew'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -293,12 +284,11 @@ md <span class="token operator">=</span> Temporal<span class="token punctuation"
 md<span class="token punctuation">.</span>monthCode<span class="token punctuation">;</span> <span class="token comment">// => 'M05L'</span>
 md<span class="token punctuation">.</span>day<span class="token punctuation">;</span> <span class="token comment">// => 15</span>
 md<span class="token punctuation">.</span>month<span class="token punctuation">;</span> <span class="token comment">// undefined</span>
-<span class="token comment">// (month property is not present in this type; use monthCode instead)</span></code></pre><h2 id="properties">Properties</h2>
-<h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>monthDay.<strong>monthCode</strong> : string</h3><h3 id="day"><a class="heading-link" href="#day"></a>monthDay.<strong>day</strong> : number</h3><p>The above read-only properties allow accessing each component of the date individually.</p>
+<span class="token comment">// (month property is not present in this type; use monthCode instead)</span></code></pre><h2 id="properties"><a class="heading-link" href="#properties"></a>Properties</h3><h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>monthDay.<strong>monthCode</strong> : string</h3><h3 id="day"><a class="heading-link" href="#day"></a>monthDay.<strong>day</strong> : number</h3><p>The above read-only properties allow accessing each component of the date individually.</p>
 <ul>
 <li><code>monthCode</code> is a calendar-specific string that identifies the month in a year-independent way.
 For common (non-leap) months, <code>monthCode</code> should be <code> </code> <code>M${month}</code> <code> </code>, where <code>month</code> is zero padded up to two digits.
-For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with with an &quot;L&quot; suffix appended.
+For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with an &quot;L&quot; suffix appended.
 Examples: <code>&#39;M02&#39;</code> =&gt; February; <code>&#39;M08L&#39;</code> =&gt; repeated 8th month in the Chinese calendar; <code>&#39;M05L&#39;</code> =&gt; Adar I in the Hebrew calendar.</li>
 <li><code>day</code> is a positive integer representing the day of the month.</li>
 </ul>
@@ -315,16 +305,15 @@ md <span class="token operator">=</span> Temporal<span class="token punctuation"
 md<span class="token punctuation">.</span>monthCode<span class="token punctuation">;</span> <span class="token comment">// => 'M05L'</span>
 md<span class="token punctuation">.</span>day<span class="token punctuation">;</span> <span class="token comment">// => 15</span>
 md<span class="token punctuation">.</span>month<span class="token punctuation">;</span> <span class="token comment">// => undefined</span>
-<span class="token comment">// (no `month` property; use `monthCode` instead)</span></code></pre><h3 id="calendar"><a class="heading-link" href="#calendar"></a>monthDay.<strong>calendar</strong> : object</h3><p>The <code>calendar</code> read-only property gives the calendar that the <code>monthCode</code> and <code>day</code> properties are interpreted in.</p>
-<h2 id="methods">Methods</h2>
-<h3 id="with"><a class="heading-link" href="#with"></a>monthDay.<strong>with</strong>(<em>monthDayLike</em>: object, <em>options</em>?: object) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
+<span class="token comment">// (no `month` property; use `monthCode` instead)</span></code></pre><h3 id="calendarId"><a class="heading-link" href="#calendarId"></a>monthDay.<strong>calendarId</strong> : object</h3><p>The <code>calendarId</code> read-only property gives the calendar that the <code>monthCode</code> and <code>day</code> properties are interpreted in.</p>
+<h2 id="methods"><a class="heading-link" href="#methods"></a>Methods</h3><h3 id="with"><a class="heading-link" href="#with"></a>monthDay.<strong>with</strong>(<em>monthDayLike</em>: object, <em>options</em>?: object) : Temporal.PlainMonthDay</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>monthDayLike</code> (object): an object with some or all of the properties that are accepted by <code>Temporal.PlainMonthDay.from</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for the operation.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -335,8 +324,8 @@ If <code>monthCode</code> is provided in addition to <code>month</code> and/or <
 <p>This method creates a new <code>Temporal.PlainMonthDay</code> which is a copy of <code>monthDay</code>, but any properties present on <code>monthDayLike</code> override the ones already present on <code>monthDay</code>.</p>
 <p>The <code>overflow</code> option tells what should happen when out-of-range values are given or when the result would be an invalid month-day combination, such as &quot;June 31&quot;:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), any out-of-range values are clamped to the nearest in-range value, so June 31 would become June 30.</li>
-<li>In <code>reject</code> mode, the presence of out-of-range values will cause the constructor to throw a <code>RangeError</code>.</li>
+<li>In <code>&#39;constrain&#39;</code> mode (the default), any out-of-range values are clamped to the nearest in-range value, so June 31 would become June 30.</li>
+<li>In <code>&#39;reject&#39;</code> mode, the presence of out-of-range values will cause the constructor to throw a <code>RangeError</code>.</li>
 </ul>
 <blockquote>
 <p><strong>NOTE:</strong> For the purpose of this method, February is treated as having 29 days, so that it remains possible to construct a <code>Temporal.PlainMonthDay</code> for February 29.</p>
@@ -381,11 +370,12 @@ The default is <code>&#39;auto&#39;</code>.</li>
 </ul>
 </li>
 </ul>
-<p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>monthDay</code>.</p>
+<p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>monthDay</code>.</p>
 <p>This method overrides the <code>Object.prototype.toString()</code> method and provides a convenient, unambiguous string representation of <code>monthDay</code>.
 The string can be passed to <code>Temporal.PlainMonthDay.from()</code> to create a new <code>Temporal.PlainMonthDay</code> object.</p>
 <p>Normally, a calendar annotation is shown when <code>monthDay</code>&#39;s calendar is not the ISO 8601 calendar.
 By setting the <code>calendarName</code> option to <code>&#39;always&#39;</code> or <code>&#39;never&#39;</code> this can be overridden to always or never show the annotation, respectively.
+With <code>calendarName: &#39;never&#39;</code> the output string will additionally be valid in the ISO 8601 and RFC 3339 date formats.
 Normally not necessary, a value of <code>&#39;critical&#39;</code> is equivalent to <code>&#39;always&#39;</code> but the annotation will contain an additional <code>!</code> for certain interoperation use cases.
 For more information on the calendar annotation, see <a href="./strings.html#calendar-systems">the <code>Temporal</code> string formats documentation</a>.</p>
 <p>Example usage:</p>
@@ -397,7 +387,7 @@ md<span class="token punctuation">.</span><span class="token function">toString<
 </ul>
 <p><strong>Returns:</strong> a language-sensitive representation of <code>monthDay</code>.</p>
 <p>This method overrides <code>Object.prototype.toLocaleString()</code> to provide a human-readable, language-sensitive representation of <code>monthDay</code>.</p>
-<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat"><code>Intl.DateTimeFormat</code></a>.</p>
+<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#parameters"><code>Intl.DateTimeFormat</code></a>.</p>
 <p>The calendar in the output locale (given by <code>new Intl.DateTimeFormat(locales, options).resolvedOptions().calendar</code>) must match <code>monthDay.calendar</code>, or this method will throw an exception.
 This is because it&#39;s not possible to convert a Temporal.PlainMonthDay from one calendar to another without more information.
 In order to ensure that the output always matches <code>monthDay</code>&#39;s internal calendar, you must either explicitly construct <code>monthDay</code> with the locale&#39;s calendar, or explicitly specify the calendar in the <code>options</code> parameter:</p>
@@ -416,7 +406,7 @@ md<span class="token punctuation">.</span><span class="token function">toLocaleS
 
 md<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> calendar <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '24.8.'</span>
 md<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token string">'numeric'</span><span class="token punctuation">,</span> calendar <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '24. August'</span>
-md<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">en-US-u-nu-fullwide-ca-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>calendar<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '８/２４'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>monthDay.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>monthDay</code>.</p>
+md<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">en-US-u-nu-fullwide-ca-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>calendar<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '８/２４'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>monthDay.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>monthDay</code>.</p>
 <p>This method is the same as <code>monthDay.toString()</code>.
 It is usually not called directly, but it can be called automatically by <code>JSON.stringify()</code>.</p>
 <p>The reverse operation, recovering a <code>Temporal.PlainMonthDay</code> object from a string, is <code>Temporal.PlainMonthDay.from()</code>, but it cannot be called automatically by <code>JSON.parse()</code>.
@@ -464,13 +454,7 @@ md<span class="token punctuation">.</span><span class="token function">toPlainDa
   <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">1</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-date <span class="token operator">=</span> md<span class="token punctuation">.</span><span class="token function">toPlainDate</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">era</span><span class="token operator">:</span> <span class="token string">'reiwa'</span><span class="token punctuation">,</span> <span class="token literal-property property">eraYear</span><span class="token operator">:</span> <span class="token number">2</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2020-01-01[u-ca=japanese]</span></code></pre><h3 id="getISOFields"><a class="heading-link" href="#getISOFields"></a>monthDay.<strong>getISOFields</strong>(): { isoYear: number, isoMonth: number, isoDay: number, calendar: object }</h3><p><strong>Returns:</strong> a plain object with properties expressing <code>monthDay</code> in the ISO 8601 calendar, as well as the value of <code>monthDay.calendar</code>.</p>
-<p>This method is mainly useful if you are implementing a custom calendar.
-Most code will not need to use it.</p>
-<p>The value of the <code>isoYear</code> property will be equal to the <code>referenceISOYear</code> constructor argument passed when <code>monthDay</code> was constructed.</p>
-<p>Usage example:</p>
-<pre class="language-javascript"><code class="language-javascript">md <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainMonthDay<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-md<span class="token punctuation">.</span><span class="token function">getISOFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>isoDay<span class="token punctuation">;</span> <span class="token comment">// => 24</span></code></pre>    <footer>
+date <span class="token operator">=</span> md<span class="token punctuation">.</span><span class="token function">toPlainDate</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">era</span><span class="token operator">:</span> <span class="token string">'reiwa'</span><span class="token punctuation">,</span> <span class="token literal-property property">eraYear</span><span class="token operator">:</span> <span class="token number">2</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2020-01-01[u-ca=japanese]</span></code></pre>    <footer>
       <p>
         This page includes a script which loads an implementation of Temporal in your browser.
         You can open a console in your browser's developer tools and try it out directly!

@@ -18,13 +18,11 @@
         header(x) {
           for (const type of [
             Temporal.Instant,
-            Temporal.Calendar,
             Temporal.PlainDate,
             Temporal.PlainDateTime,
             Temporal.Duration,
             Temporal.PlainMonthDay,
             Temporal.PlainTime,
-            Temporal.TimeZone,
             Temporal.PlainYearMonth
           ]) {
             if (x instanceof type) return ['span', {}, `${x[Symbol.toStringTag]} <${x}>`];
@@ -111,19 +109,9 @@
       }
       .heading-link:hover { text-decoration: none; }
       .heading-link::before { content: '¶'; }
-      h3:hover .heading-link { opacity: 1; }
+      h2:hover .heading-link, h3:hover .heading-link, h4:hover .heading-link, h5:hover .heading-link { opacity: 0.75; }
       .banner {
-        /* Gradient from https://joshnh.com/weblog/how-to-make-an-alert-bar/ */
-        background-color: #fce94f;
-        background-image: linear-gradient(135deg,
-                                          transparent,
-                                          transparent 25%,
-                                          rgba(0, 0, 0, .05) 25%,
-                                          rgba(0, 0, 0, .05) 50%,
-                                          transparent 50%,
-                                          transparent 75%,
-                                          rgba(0, 0, 0, .05) 75%,
-                                          rgba(0, 0, 0, .05));
+        background-color: #ffcc7a;
         background-size: 20px 20px;
         box-shadow: 0 5px 0 rgba(0, 0, 0, .1);
         left: 0;
@@ -137,11 +125,12 @@
   </head>
   <body>
     <div class="banner">
-      This Stage 3 proposal is <strong><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">experimental.</a></strong>
-      <strong>Do</strong> try it and <a href="https://github.com/tc39/proposal-temporal/issues">report bugs</a>; <strong>don't</strong> use it in production!
+      Please visit Temporal documentation on <strong>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal">MDN,</a>
+      </strong> the main API reference going forward.
+      Or see our <strong><a href="cookbook.html">cookbook</a></strong>.
     </div>
-<h1 id="temporalplainyearmonth">Temporal.PlainYearMonth</h1>
-<details>
+<h1 id="temporalplainyearmonth"><a class="heading-link" href="#temporalplainyearmonth"></a>Temporal.PlainYearMonth</h3><details>
   <summary><strong>Table of Contents</strong></summary>
 <ul>
 <li><a href="#constructor">Constructor</a>
@@ -166,7 +155,7 @@
 </li>
 <li><a href="#monthCode">monthCode</a>
 </li>
-<li><a href="#calendar">calendar</a>
+<li><a href="#calendarId">calendarId</a>
 </li>
 <li><a href="#era">era</a>
 </li>
@@ -206,8 +195,6 @@
 </li>
 <li><a href="#toPlainDate">toPlainDate</a>
 </li>
-<li><a href="#getISOFields">getISOFields</a>
-</li>
 </ul>
 </li>
 </ul>
@@ -217,45 +204,45 @@
 For example, it could be used to represent a particular instance of a monthly recurring event, like &quot;the June 2019 meeting&quot;.</p>
 <p><code>Temporal.PlainYearMonth</code> refers to the whole of a specific month; if you need to refer to a calendar event on a certain day, use <code>Temporal.PlainDate</code> or even <code>Temporal.PlainDateTime</code>.
 A <code>Temporal.PlainYearMonth</code> can be converted into a <code>Temporal.PlainDate</code> by combining it with a day of the month, using the <code>toPlainDate()</code> method.</p>
-<h2 id="constructor">Constructor</h2>
-<h3 id="new-Temporal-PlainYearMonth"><a class="heading-link" href="#new-Temporal-PlainYearMonth"></a><strong>new Temporal.PlainYearMonth</strong>(<em>isoYear</em>: number, <em>isoMonth</em>: number, <em>calendar</em>?: string | object, <em>referenceISODay</em>: number = 1) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
+<h2 id="constructor"><a class="heading-link" href="#constructor"></a>Constructor</h3><h3 id="new-Temporal-PlainYearMonth"><a class="heading-link" href="#new-Temporal-PlainYearMonth"></a><strong>new Temporal.PlainYearMonth</strong>(<em>isoYear</em>: number, <em>isoMonth</em>: number, <em>calendar</em>: string = &quot;iso8601&quot;, <em>referenceISODay</em>: number = 1) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>isoYear</code> (number): A year.</li>
 <li><code>isoMonth</code> (number): A month, ranging between 1 and 12 inclusive.</li>
-<li><code>calendar</code> (optional <code>Temporal.Calendar</code>, plain object, or string): A calendar to project the month into.</li>
+<li><code>calendar</code> (optional string): A calendar to project the month into.</li>
 <li><code>referenceISODay</code> (optional for ISO 8601 calendar; required for other calendars): A reference day, used for disambiguation when implementing calendar systems.
 For the ISO 8601 calendar, this parameter will default to 1 if omitted.
-For other calendars, the must set this parameter to the ISO-calendar day corresponding to the first day of the desired calendar year and month.</li>
+For other calendars, this parameter must be the ISO-calendar day corresponding to the first day of the desired calendar year and month.</li>
 </ul>
 <blockquote>
 <p>The <code>calendar</code> and <code>referenceISODay</code> parameters should be avoided because <code>equals</code> or <code>compare</code> will consider <code>new Temporal.PlainYearMonth(2000, 3, &#39;iso8601&#39;, 14)</code> and <code>PlainYearMonth(2000, 3, &#39;iso8601&#39;, 1)</code> unequal even though they refer to the same year and month.
-When creating instances for non-ISO-8601 calendars (except when implementing a custom calendar) use the <code>from()</code> method which will automatically set a valid and <code>equals</code>-compatible reference day.</p>
+When creating instances for non-ISO-8601 calendars use the <code>from()</code> method which will automatically set a valid and <code>equals</code>-compatible reference day.</p>
 </blockquote>
 <blockquote>
 <p>NOTE: To avoid infinite recursion, <code>referenceISODay</code> is accepted as-is without validating that the day provided is actually the first day of the month in the desired calendar system.
 This lack of validation means that <code>equals</code> or <code>compare</code> may return <code>false</code> for <code>Temporal.PlainYearMonth</code> instances where the year and month and day are identical, but the reference days don&#39;t match.
-For this reason, it is STRONGLY recommended that this constructor SHOULD NOT be used except when implementing a custom calendar or when only using the ISO 8601 calendar.
+For this reason, it is STRONGLY recommended that this constructor SHOULD NOT be used except when only using the ISO 8601 calendar.
 For other calendars, use <code>Temporal.PlainYearMonth.from()</code> which will automatically set the correct always set the <code>referenceISODay</code> to the first of the month when constructing the new object.</p>
 </blockquote>
 <p><strong>Returns:</strong> a new <code>Temporal.PlainYearMonth</code> object.</p>
-<p>All values are given as reckoned in the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.</p>
+<p>All values are given as reckoned in the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.
+Together, <code>isoYear</code>, <code>isoMonth</code>, and <code>referenceISODay</code> must represent a valid date in that calendar, even if you are passing a different calendar as the <code>calendar</code> parameter.</p>
 <p>The range of allowed values for this type is exactly enough that calling <a href="./plaindate.html#toPlainYearMonth"><code>toPlainYearMonth()</code></a> on any valid <code>Temporal.PlainDate</code> will succeed.
 If <code>isoYear</code> and <code>isoMonth</code> are outside of this range, then this function will throw a <code>RangeError</code>.</p>
+<p><code>calendar</code> is a string containing the identifier of a built-in calendar, such as <code>&#39;islamic&#39;</code> or <code>&#39;gregory&#39;</code>.</p>
 <blockquote>
 <p><strong>NOTE</strong>: The <code>isoMonth</code> argument ranges from 1 to 12, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
 </blockquote>
 <p>Usage examples:</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// The June 2019 meeting</span>
 ym <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainYearMonth</span><span class="token punctuation">(</span><span class="token number">2019</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">// => 2019-06</span></code></pre><h2 id="static-methods">Static methods</h2>
-<h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainYearMonth.<strong>from</strong>(<em>thing</em>: any, <em>options</em>?: object) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
+<span class="token comment">// => 2019-06</span></code></pre><h2 id="static-methods"><a class="heading-link" href="#static-methods"></a>Static methods</h3><h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainYearMonth.<strong>from</strong>(<em>item</em>: Temporal.PlainYearMonth | object | string, <em>options</em>?: object) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
 <ul>
-<li><code>thing</code>: The value representing the desired month.</li>
+<li><code>item</code>: a value convertible to a <code>Temporal.PlainYearMonth</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for constructing the date.
 The following options are recognized:<ul>
-<li><code>overflow</code> (string): How to deal with out-of-range values if <code>thing</code> is an object.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+<li><code>overflow</code> (string): How to deal with out-of-range values if <code>item</code> is an object.
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -264,21 +251,24 @@ The default is <code>constrain</code>.</li>
 If the value is another <code>Temporal.PlainYearMonth</code> object, a new object representing the same month is returned.
 If the value is any other object, it must have <code>year</code> (or <code>era</code> and <code>eraYear</code>), <code>month</code> (or <code>monthCode</code>) properties, and optionally a <code>calendar</code> property.
 A <code>Temporal.PlainYearMonth</code> will be constructed from these properties.</p>
-<p>If the <code>calendar</code> property is not present, it&#39;s assumed to be <code>Temporal.Calendar.from(&#39;iso8601&#39;)</code>, the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>.
+<p>If the <code>calendar</code> property is not present, it&#39;s assumed to be <code>&#39;iso8601&#39;</code> (identifying the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a>).
 In this calendar, <code>era</code> is ignored.</p>
-<p>Any non-object value is converted to a string, which is expected to be in ISO 8601 format.
+<p>If the value is not an object, it must be a string, which is expected to be in RFC 9557 format, or a subset of that format that includes at least the year and month.
 Any parts of the string other than the year and the month are optional and will be ignored.</p>
-<p>If the string isn&#39;t valid according to ISO 8601, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.
+<p>Note that ISO 8601 and RFC 3339 formats are also subsets of RFC 9557, so will also work.
+Temporal additionally accepts a few ISO 8601 extensions that RFC 9557 does not, like the use of 6-digit years.
+For more info, see <a href="https://tc39.es/proposal-temporal/#sec-temporal-iso8601grammar">RFC 9557 / ISO 8601 Grammar</a>.</p>
+<p>If the string isn&#39;t a valid subset of the RFC 9557 format, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.
 A <code>RangeError</code> will also be thrown for strings that contain a <code>Z</code> in place of a numeric UTC offset, because interpreting these strings as a local date is usually a bug.</p>
-<p>The <code>overflow</code> option works as follows, if <code>thing</code> is an object:</p>
+<p>The <code>overflow</code> option works as follows, if <code>item</code> is an object:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), any out-of-range values are clamped to the nearest in-range value.</li>
-<li>In <code>reject</code> mode, the presence of out-of-range values will cause the function to throw a <code>RangeError</code>.</li>
+<li>In <code>&#39;constrain&#39;</code> mode (the default), any out-of-range values are clamped to the nearest in-range value (after assuming extension of eras over arbitrary years to substitute <code>era</code> and <code>eraYear</code> with appropriate values for the <code>item</code>).</li>
+<li>In <code>&#39;reject&#39;</code> mode, the presence of out-of-range values (after assuming extension of eras over arbitrary years to substitute <code>era</code> and <code>eraYear</code> with appropriate values for the <code>item</code>) will cause the function to throw a <code>RangeError</code>.</li>
 </ul>
-<p>The <code>overflow</code> option is ignored if <code>thing</code> is a string.</p>
+<p>The <code>overflow</code> option is ignored if <code>item</code> is a string.</p>
 <p>Additionally, if the result is earlier or later than the range of dates that <code>Temporal.PlainYearMonth</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this method will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
 <blockquote>
-<p><strong>NOTE</strong>: The allowed values for the <code>thing.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
+<p><strong>NOTE</strong>: The allowed values for the <code>item.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
 </blockquote>
 <p>Example usage:</p>
 <!-- prettier-ignore-start -->
@@ -322,12 +312,11 @@ For example:</p>
 two <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2015-07'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 three <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'1930-02'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 sorted <span class="token operator">=</span> <span class="token punctuation">[</span>one<span class="token punctuation">,</span> two<span class="token punctuation">,</span> three<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">sort</span><span class="token punctuation">(</span>Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span>compare<span class="token punctuation">)</span><span class="token punctuation">;</span>
-sorted<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '1930-02 2006-08 2015-07'</span></code></pre><h2 id="properties">Properties</h2>
-<h3 id="year"><a class="heading-link" href="#year"></a>yearMonth.<strong>year</strong> : number</h3><h3 id="month"><a class="heading-link" href="#month"></a>yearMonth.<strong>month</strong> : number</h3><h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>yearMonth.<strong>monthCode</strong> : string</h3><p>The above read-only properties allow accessing the year or month individually.</p>
+sorted<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '1930-02 2006-08 2015-07'</span></code></pre><h2 id="properties"><a class="heading-link" href="#properties"></a>Properties</h3><h3 id="year"><a class="heading-link" href="#year"></a>yearMonth.<strong>year</strong> : number</h3><h3 id="month"><a class="heading-link" href="#month"></a>yearMonth.<strong>month</strong> : number</h3><h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>yearMonth.<strong>monthCode</strong> : string</h3><p>The above read-only properties allow accessing the year or month individually.</p>
 <ul>
-<li><code>year</code> is a signed integer representing the number of years relative to a calendar-specific anchor date.
+<li><code>year</code> is a signed integer representing the number of years relative to a calendar-specific epoch.
 For calendars that use eras, the anchor is usually aligned with the latest era so that <code>eraYear === year</code> for all dates in that era.
-However, some calendars like Japanese may use a different anchor.</li>
+However, some calendars use a different anchor (e.g., the Japanese calendar <code>year</code> matches the ISO 8601 and Gregorian calendars in counting from ISO year 0001 as <code>1</code>).</li>
 <li><code>month</code> is a positive integer representing the ordinal index of the month in the current year.
 For calendars like Hebrew or Chinese that use leap months, the same-named month may have a different <code>month</code> value depending on the year.
 The first month in every year has <code>month</code> equal to <code>1</code>.
@@ -335,11 +324,11 @@ The last month of every year has <code>month</code> equal to the <code>monthsInY
 <code>month</code> values start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</li>
 <li><code>monthCode</code> is a calendar-specific string that identifies the month in a year-independent way.
 For common (non-leap) months, <code>monthCode</code> should be <code>`M${month}`</code>, where <code>month</code> is zero padded up to two digits.
-For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with with an &quot;L&quot; suffix appended.
+For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with an &quot;L&quot; suffix appended.
 Examples: <code>&#39;M02&#39;</code> =&gt; February; <code>&#39;M08L&#39;</code> =&gt; repeated 8th month in the Chinese calendar; <code>&#39;M05L&#39;</code> =&gt; Adar I in the Hebrew calendar.</li>
 </ul>
 <p>Either <code>month</code> or <code>monthCode</code> can be used in <code>from</code> or <code>with</code> to refer to the month.
-Similarly, in calendars that user eras an <code>era</code>/<code>eraYear</code> pair can be used in place of <code>year</code> when calling <code>from</code> or <code>with</code>.</p>
+Similarly, in calendars that use eras, an <code>era</code>/<code>eraYear</code> pair can be used in place of <code>year</code> when calling <code>from</code> or <code>with</code>.</p>
 <p>Usage examples:</p>
 <pre class="language-javascript"><code class="language-javascript">ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-06'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 ym<span class="token punctuation">.</span>year<span class="token punctuation">;</span> <span class="token comment">// => 2019</span>
@@ -349,7 +338,7 @@ ym<span class="token punctuation">.</span>monthCode<span class="token punctuatio
 ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-02-23[u-ca=hebrew]'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 ym<span class="token punctuation">.</span>year<span class="token punctuation">;</span> <span class="token comment">// => 5779</span>
 ym<span class="token punctuation">.</span>month<span class="token punctuation">;</span> <span class="token comment">// => 6</span>
-ym<span class="token punctuation">.</span>monthCode<span class="token punctuation">;</span> <span class="token comment">// => 'M05L'</span></code></pre><h3 id="calendar"><a class="heading-link" href="#calendar"></a>yearMonth.<strong>calendar</strong> : object</h3><p>The <code>calendar</code> read-only property gives the calendar that the <code>year</code> and <code>month</code> properties are interpreted in.</p>
+ym<span class="token punctuation">.</span>monthCode<span class="token punctuation">;</span> <span class="token comment">// => 'M05L'</span></code></pre><h3 id="calendarId"><a class="heading-link" href="#calendarId"></a>yearMonth.<strong>calendarId</strong> : object</h3><p>The <code>calendarId</code> read-only property gives the identifier of the calendar that the <code>year</code>, <code>month</code>, and <code>monthCode</code> properties are interpreted in.</p>
 <h3 id="era"><a class="heading-link" href="#era"></a>yearMonth.<strong>era</strong> : string | undefined</h3><h3 id="eraYear"><a class="heading-link" href="#eraYear"></a>yearMonth.<strong>eraYear</strong> : number | undefined</h3><p>In calendars that use eras, the <code>era</code> and <code>eraYear</code> read-only properties can be used together to resolve an era-relative year.
 Both properties are <code>undefined</code> when using the ISO 8601 calendar.
 As inputs to <code>from</code> or <code>with</code>, <code>era</code> and <code>eraYear</code> can be used instead of <code>year</code>.
@@ -397,15 +386,14 @@ Its value is <code>true</code> if the year is a leap year, and <code>false</code
 ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-06'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 ym<span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// => false</span>
 <span class="token comment">// Is 2100 a leap year? (no, because it's divisible by 100 and not 400)</span>
-ym<span class="token punctuation">.</span><span class="token function">with</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2100</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// => false</span></code></pre><h2 id="methods">Methods</h2>
-<h3 id="with"><a class="heading-link" href="#with"></a>yearMonth.<strong>with</strong>(<em>yearMonthLike</em>: object, <em>options</em>?: object) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
+ym<span class="token punctuation">.</span><span class="token function">with</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2100</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// => false</span></code></pre><h2 id="methods"><a class="heading-link" href="#methods"></a>Methods</h3><h3 id="with"><a class="heading-link" href="#with"></a>yearMonth.<strong>with</strong>(<em>yearMonthLike</em>: object, <em>options</em>?: object) : Temporal.PlainYearMonth</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>yearMonthLike</code> (object): an object with some or all of the properties of a <code>Temporal.PlainYearMonth</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for the operation.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -430,8 +418,8 @@ ym<span class="token punctuation">.</span><span class="token function">with</spa
 <li><code>options</code> (optional object): An object with properties representing options for the addition.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with additions that result in out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -439,8 +427,10 @@ The default is <code>constrain</code>.</li>
 <p>This method adds <code>duration</code> to <code>yearMonth</code>, returning a month that is in the future relative to <code>yearMonth</code>.</p>
 <p>The <code>duration</code> argument is an object with properties denoting a duration, such as <code>{ months: 5 }</code>, or a string such as <code>P5M</code>, or a <code>Temporal.Duration</code> object.
 If <code>duration</code> is not a <code>Temporal.Duration</code> object, then it will be converted to one as if it were passed to <code>Temporal.Duration.from()</code>.</p>
+<p>If <code>duration</code> has any units smaller than <code>months</code>, they will be treated as if they are being added to the first moment of the month given by <code>yearMonth</code>.
+Effectively, this means that adding things like <code>{ days: 1 }</code> will be ignored.</p>
 <p>If the result is earlier or later than the range of dates that <code>Temporal.PlainYearMonth</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this method will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
-<p>The <code>overflow</code> option has no effect in the default ISO calendar, because a year is always 12 months and therefore not ambiguous.
+<p>The <code>overflow</code> option has no effect in the default ISO 8601 calendar, because a year is always 12 months and therefore not ambiguous.
 It doesn&#39;t matter in this case that years and months can be different numbers of days, as the resolution of <code>Temporal.PlainYearMonth</code> does not distinguish days.
 However, <code>overflow</code> may have an effect in other calendars where years can be different numbers of months.</p>
 <p>Adding a negative duration is equivalent to subtracting the absolute value of that duration.</p>
@@ -452,8 +442,8 @@ ym<span class="token punctuation">.</span><span class="token function">add</span
 <li><code>options</code> (optional object): An object with properties representing options for the subtraction.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with additions that result in out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -461,8 +451,10 @@ The default is <code>constrain</code>.</li>
 <p>This method subtracts <code>duration</code> from <code>yearMonth</code>, returning a month that is in the future relative to <code>yearMonth</code>.</p>
 <p>The <code>duration</code> argument is an object with properties denoting a duration, such as <code>{ months: 5 }</code>, or a string such as <code>P5M</code>, or a <code>Temporal.Duration</code> object.
 If <code>duration</code> is not a <code>Temporal.Duration</code> object, then it will be converted to one as if it were passed to <code>Temporal.Duration.from()</code>.</p>
+<p>If <code>duration</code> has any units smaller than <code>months</code>, they will be treated as if they are being subtracted from the last moment of the month given by <code>yearMonth</code>.
+Effectively, this means that subtracting things like <code>{ days: 1 }</code> will be ignored.</p>
 <p>If the result is earlier or later than the range of dates that <code>Temporal.PlainYearMonth</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this method will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
-<p>The <code>overflow</code> option has no effect in the default ISO calendar, because a year is always 12 months and therefore not ambiguous.
+<p>The <code>overflow</code> option has no effect in the default ISO 8601 calendar, because a year is always 12 months and therefore not ambiguous.
 It doesn&#39;t matter in this case that years and months can be different numbers of days, as the resolution of <code>Temporal.PlainYearMonth</code> does not distinguish days.
 However, <code>overflow</code> may have an effect in other calendars where years can be different numbers of months.</p>
 <p>Subtracting a negative duration is equivalent to adding the absolute value of that duration.</p>
@@ -490,7 +482,7 @@ The default is <code>&#39;trunc&#39;</code>, which truncates any remainder towar
 <p><strong>Returns:</strong> a <code>Temporal.Duration</code> representing the elapsed time after <code>yearMonth</code> and until <code>other</code>.</p>
 <p>This method computes the difference between the two months represented by <code>yearMonth</code> and <code>other</code>, optionally rounds it, and returns it as a <code>Temporal.Duration</code> object.
 If <code>other</code> is earlier than <code>yearMonth</code> then the resulting duration will be negative.
-The returned <code>Temporal.Duration</code>, when added to <code>yearMonth</code> with the same <code>options</code>, will yield <code>other</code>.</p>
+If using the default <code>options</code>, adding the returned <code>Temporal.Duration</code> to <code>yearMonth</code> will yield <code>other</code>.</p>
 <p>If <code>other</code> is not a <code>Temporal.PlainYearMonth</code> object, then it will be converted to one as if it were passed to <code>Temporal.PlainYearMonth.from()</code>.</p>
 <p>The <code>largestUnit</code> option controls how the resulting duration is expressed.
 The returned <code>Temporal.Duration</code> object will not have any nonzero fields that are larger than the unit in <code>largestUnit</code>.
@@ -541,8 +533,7 @@ The default is <code>&#39;trunc&#39;</code>, which truncates any remainder towar
 <p>This method computes the difference between the two months represented by <code>yearMonth</code> and <code>other</code>, optionally rounds it, and returns it as a <code>Temporal.Duration</code> object.
 If <code>other</code> is later than <code>yearMonth</code> then the resulting duration will be negative.</p>
 <p>This method is similar to <code>Temporal.PlainYearMonth.prototype.until()</code>, but reversed.
-The returned <code>Temporal.Duration</code>, when subtracted from <code>yearMonth</code> using the same <code>options</code>, will yield <code>other</code>.
-Using default options, <code>ym1.since(ym2)</code> yields the same result as <code>ym1.until(ym2).negated()</code>, but results may differ with options like <code>{ largestUnit: &#39;month&#39; }</code>.</p>
+If using the default <code>options</code>, subtracting the returned <code>Temporal.Duration</code> from <code>yearMonth</code> will yield <code>other</code>, and <code>ym1.since(ym2)</code> will yield the same result as <code>ym1.until(ym2).negated()</code>.</p>
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-06'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 other <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -570,11 +561,12 @@ The default is <code>&#39;auto&#39;</code>.</li>
 </ul>
 </li>
 </ul>
-<p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>yearMonth</code>.</p>
+<p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>yearMonth</code>.</p>
 <p>This method overrides the <code>Object.prototype.toString()</code> method and provides a convenient, unambiguous string representation of <code>yearMonth</code>.
 The string can be passed to <code>Temporal.PlainYearMonth.from()</code> to create a new <code>Temporal.PlainYearMonth</code> object.</p>
 <p>Normally, a calendar annotation is shown when <code>yearMonth</code>&#39;s calendar is not the ISO 8601 calendar.
 By setting the <code>calendarName</code> option to <code>&#39;always&#39;</code> or <code>&#39;never&#39;</code> this can be overridden to always or never show the annotation, respectively.
+With <code>calendarName: &#39;never&#39;</code> the output string will additionally be valid in the ISO 8601 and RFC 3339 date formats.
 Normally not necessary, a value of <code>&#39;critical&#39;</code> is equivalent to <code>&#39;always&#39;</code> but the annotation will contain an additional <code>!</code> for certain interoperation use cases.
 For more information on the calendar annotation, see <a href="./strings.html#calendar-systems">the <code>Temporal</code> string formats documentation</a>.</p>
 <p>Example usage:</p>
@@ -586,7 +578,7 @@ ym<span class="token punctuation">.</span><span class="token function">toString<
 </ul>
 <p><strong>Returns:</strong> a language-sensitive representation of <code>yearMonth</code>.</p>
 <p>This method overrides <code>Object.prototype.toLocaleString()</code> to provide a human-readable, language-sensitive representation of <code>yearMonth</code>.</p>
-<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat"><code>Intl.DateTimeFormat</code></a>.</p>
+<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#parameters"><code>Intl.DateTimeFormat</code></a>.</p>
 <p>The calendar in the output locale (given by <code>new Intl.DateTimeFormat(locales, options).resolvedOptions().calendar</code>) must match <code>monthDay.calendar</code>, or this method will throw an exception.
 This is because it&#39;s not possible to convert a Temporal.PlainMonthDay from one calendar to another without more information.
 In order to ensure that the output always matches <code>monthDay</code>&#39;s internal calendar, you must either explicitly construct <code>monthDay</code> with the locale&#39;s calendar, or explicitly specify the calendar in the <code>options</code> parameter:</p>
@@ -604,7 +596,7 @@ ym<span class="token punctuation">.</span><span class="token function">toLocaleS
 
 ym<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> calendar <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// example output: '6.2019'</span>
 ym<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token string">'long'</span><span class="token punctuation">,</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token string">'numeric'</span><span class="token punctuation">,</span> calendar <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 'Juni 2019'</span>
-ym<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">en-US-u-nu-fullwide-ca-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>calendar<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '６/２０１９'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>yearMonth.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>yearMonth</code>.</p>
+ym<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">en-US-u-nu-fullwide-ca-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>calendar<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '６/２０１９'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>yearMonth.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>yearMonth</code>.</p>
 <p>This method is the same as <code>yearMonth.toString()</code>.
 It is usually not called directly, but it can be called automatically by <code>JSON.stringify()</code>.</p>
 <p>The reverse operation, recovering a <code>Temporal.PlainYearMonth</code> object from a string, is <code>Temporal.PlainYearMonth.from()</code>, but it cannot be called automatically by <code>JSON.parse()</code>.
@@ -645,13 +637,7 @@ Use <code>Temporal.PlainYearMonth.compare()</code> for this, or <code>yearMonth.
 The converted object carries a copy of all the relevant fields of <code>yearMonth</code>.</p>
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-06'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-ym<span class="token punctuation">.</span><span class="token function">toPlainDate</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">24</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2019-06-24</span></code></pre><h3 id="getISOFields"><a class="heading-link" href="#getISOFields"></a>yearMonth.<strong>getISOFields</strong>(): { isoYear: number, isoMonth: number, isoDay: number, calendar: object }</h3><p><strong>Returns:</strong> a plain object with properties expressing <code>yearMonth</code> in the ISO 8601 calendar, as well as the value of <code>yearMonth.calendar</code>.</p>
-<p>This method is mainly useful if you are implementing a custom calendar.
-Most code will not need to use it.</p>
-<p>The value of the <code>isoDay</code> property will be equal to the <code>referenceISODay</code> constructor argument passed when <code>yearMonth</code> was constructed.</p>
-<p>Usage example:</p>
-<pre class="language-javascript"><code class="language-javascript">ym <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainYearMonth<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-06'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-ym<span class="token punctuation">.</span><span class="token function">getISOFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>isoYear<span class="token punctuation">;</span> <span class="token comment">// => 2019</span></code></pre>    <footer>
+ym<span class="token punctuation">.</span><span class="token function">toPlainDate</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">24</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2019-06-24</span></code></pre>    <footer>
       <p>
         This page includes a script which loads an implementation of Temporal in your browser.
         You can open a console in your browser's developer tools and try it out directly!

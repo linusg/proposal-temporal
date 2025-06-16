@@ -18,13 +18,11 @@
         header(x) {
           for (const type of [
             Temporal.Instant,
-            Temporal.Calendar,
             Temporal.PlainDate,
             Temporal.PlainDateTime,
             Temporal.Duration,
             Temporal.PlainMonthDay,
             Temporal.PlainTime,
-            Temporal.TimeZone,
             Temporal.PlainYearMonth
           ]) {
             if (x instanceof type) return ['span', {}, `${x[Symbol.toStringTag]} <${x}>`];
@@ -111,19 +109,9 @@
       }
       .heading-link:hover { text-decoration: none; }
       .heading-link::before { content: '¶'; }
-      h3:hover .heading-link { opacity: 1; }
+      h2:hover .heading-link, h3:hover .heading-link, h4:hover .heading-link, h5:hover .heading-link { opacity: 0.75; }
       .banner {
-        /* Gradient from https://joshnh.com/weblog/how-to-make-an-alert-bar/ */
-        background-color: #fce94f;
-        background-image: linear-gradient(135deg,
-                                          transparent,
-                                          transparent 25%,
-                                          rgba(0, 0, 0, .05) 25%,
-                                          rgba(0, 0, 0, .05) 50%,
-                                          transparent 50%,
-                                          transparent 75%,
-                                          rgba(0, 0, 0, .05) 75%,
-                                          rgba(0, 0, 0, .05));
+        background-color: #ffcc7a;
         background-size: 20px 20px;
         box-shadow: 0 5px 0 rgba(0, 0, 0, .1);
         left: 0;
@@ -137,11 +125,12 @@
   </head>
   <body>
     <div class="banner">
-      This Stage 3 proposal is <strong><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">experimental.</a></strong>
-      <strong>Do</strong> try it and <a href="https://github.com/tc39/proposal-temporal/issues">report bugs</a>; <strong>don't</strong> use it in production!
+      Please visit Temporal documentation on <strong>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal">MDN,</a>
+      </strong> the main API reference going forward.
+      Or see our <strong><a href="cookbook.html">cookbook</a></strong>.
     </div>
-<h1 id="temporalplaindate">Temporal.PlainDate</h1>
-<details>
+<h1 id="temporalplaindate"><a class="heading-link" href="#temporalplaindate"></a>Temporal.PlainDate</h3><details>
   <summary><strong>Table of Contents</strong></summary>
 <ul>
 <li><a href="#constructor">Constructor</a>
@@ -168,7 +157,7 @@
 </li>
 <li><a href="#day">day</a>
 </li>
-<li><a href="#calendar">calendar</a>
+<li><a href="#calendarId">calendarId</a>
 </li>
 <li><a href="#era">era</a>
 </li>
@@ -179,6 +168,8 @@
 <li><a href="#dayOfYear">dayOfYear</a>
 </li>
 <li><a href="#weekOfYear">weekOfYear</a>
+</li>
+<li><a href="#yearOfWeek">yearOfWeek</a>
 </li>
 <li><a href="#daysInWeek">daysInWeek</a>
 </li>
@@ -224,8 +215,6 @@
 </li>
 <li><a href="#toPlainMonthDay">toPlainMonthDay</a>
 </li>
-<li><a href="#getISOFields">getISOFields</a>
-</li>
 </ul>
 </li>
 </ul>
@@ -235,16 +224,15 @@
 &quot;Calendar date&quot; refers to the concept of a date as expressed in everyday usage, independent of any time zone.
 For example, it could be used to represent an event on a calendar which happens during the whole day no matter which time zone it&#39;s happening in.</p>
 <p><code>Temporal.PlainDate</code> refers to the whole of a specific day; if you need to refer to a specific time on that day, use <code>Temporal.PlainDateTime</code>.
-A <code>Temporal.PlainDate</code> can be converted into a <code>Temporal.ZonedDateTime</code> by combining it with a <code>Temporal.PlainTime</code> and <code>Temporal.TimeZone</code> using the <code>toZonedDateTime()</code> method.
+A <code>Temporal.PlainDate</code> can be converted into a <code>Temporal.ZonedDateTime</code> by combining it with a <code>Temporal.PlainTime</code> and time zone identifier using the <code>toZonedDateTime()</code> method.
 It can also be combined with a <code>Temporal.PlainTime</code> to yield a &quot;zoneless&quot; <code>Temporal.PlainDateTime</code> using the <code>toPlainDateTime()</code> method.</p>
 <p><code>Temporal.PlainYearMonth</code> and <code>Temporal.PlainMonthDay</code> carry less information than <code>Temporal.PlainDate</code> and should be used when complete information is not required.</p>
-<h2 id="constructor">Constructor</h2>
-<h3 id="new-Temporal-PlainDate"><a class="heading-link" href="#new-Temporal-PlainDate"></a><strong>new Temporal.PlainDate</strong>(<em>isoYear</em>: number, <em>isoMonth</em>: number, <em>isoDay</em>: number, <em>calendar</em>?: string | object) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
+<h2 id="constructor"><a class="heading-link" href="#constructor"></a>Constructor</h3><h3 id="new-Temporal-PlainDate"><a class="heading-link" href="#new-Temporal-PlainDate"></a><strong>new Temporal.PlainDate</strong>(<em>isoYear</em>: number, <em>isoMonth</em>: number, <em>isoDay</em>: number, <em>calendar</em>: string = &quot;iso8601&quot;) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>isoYear</code> (number): A year.</li>
 <li><code>isoMonth</code> (number): A month, ranging between 1 and 12 inclusive.</li>
 <li><code>isoDay</code> (number): A day of the month, ranging between 1 and 31 inclusive.</li>
-<li><code>calendar</code> (optional <code>Temporal.Calendar</code>, plain object, or string): A calendar to project the date into.</li>
+<li><code>calendar</code> (optional string): A calendar to project the date into.</li>
 </ul>
 <p><strong>Returns:</strong> a new <code>Temporal.PlainDate</code> object.</p>
 <p>Use this constructor if you have the correct parameters for the date already as individual number values in the ISO 8601 calendar.
@@ -253,20 +241,20 @@ Otherwise, <code>Temporal.PlainDate.from()</code>, which accepts more kinds of i
 Together, <code>isoYear</code>, <code>isoMonth</code>, and <code>isoDay</code> must represent a valid date in that calendar, even if you are passing a different calendar as the <code>calendar</code> parameter.</p>
 <p>The range of allowed values for this type is exactly enough that calling <a href="./plaindatetime.html#toPlainDate"><code>toPlainDate()</code></a> on any valid <code>Temporal.PlainDateTime</code> will succeed.
 If <code>isoYear</code>, <code>isoMonth</code>, and <code>isoDay</code> form a date outside of this range, then this function will throw a <code>RangeError</code>.</p>
+<p><code>calendar</code> is a string containing the identifier of a built-in calendar, such as <code>&#39;islamic&#39;</code> or <code>&#39;gregory&#39;</code>.</p>
 <blockquote>
 <p><strong>NOTE</strong>: The <code>isoMonth</code> argument ranges from 1 to 12, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
 </blockquote>
 <p>Usage examples:</p>
 <pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Pi day in 2020</span>
-date <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainDate</span><span class="token punctuation">(</span><span class="token number">2020</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">14</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2020-03-14</span></code></pre><h2 id="static-methods">Static methods</h2>
-<h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainDate.<strong>from</strong>(<em>thing</em>: any, <em>options</em>?: object) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
+date <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainDate</span><span class="token punctuation">(</span><span class="token number">2020</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">14</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2020-03-14</span></code></pre><h2 id="static-methods"><a class="heading-link" href="#static-methods"></a>Static methods</h3><h3 id="from"><a class="heading-link" href="#from"></a>Temporal.PlainDate.<strong>from</strong>(<em>item</em>: Temporal.PlainDate | object | string, <em>options</em>?: object) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
 <ul>
-<li><code>thing</code>: The value representing the desired date.</li>
+<li><code>item</code>: a value convertible to a <code>Temporal.PlainDate</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for constructing the date.
 The following options are recognized:<ul>
-<li><code>overflow</code> (string): How to deal with out-of-range values if <code>thing</code> is an object.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+<li><code>overflow</code> (string): How to deal with out-of-range values if <code>item</code> is an object.
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -279,24 +267,28 @@ If the value is any other object, it:</p>
 <li>Must have either a number <code>month</code> property or a string <code>monthCode</code> property.</li>
 <li>May have a <code>calendar</code> property. If omitted, the <a href="https://en.wikipedia.org/wiki/ISO_8601#Dates">ISO 8601 calendar</a> will be used by default.</li>
 </ul>
-<p>Any non-object value is converted to a string, which is expected to be in ISO 8601 format.
+<p>If the value is not an object, it must be a string, which is expected to be in RFC 9557 format, or a subset of that format that includes at least the date portion.
 Any time part is optional and will be ignored.
 Time zone or UTC offset information will also be ignored, with one exception: if a string contains a <code>Z</code> in place of a numeric UTC offset, then a <code>RangeError</code> will be thrown because interpreting these strings as a local date and time is usually a bug. <code>Temporal.Instant.from</code> should be used instead to parse these strings, and the result&#39;s <code>toZonedDateTimeISO</code> method can be used to obtain a timezone-local date and time.</p>
-<p>In unusual cases of needing date or time components of <code>Z</code>-terminated timestamp strings (e.g. daily rollover of a UTC-timestamped log file), use the time zone <code>&#39;UTC&#39;</code>. For example, the following code returns a &quot;UTC date&quot;: <code>Temporal.Instant.from(thing).toZonedDateTimeISO(&#39;UTC&#39;).toPlainDate()</code>.</p>
-<p>If the string isn&#39;t valid according to ISO 8601, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.</p>
-<p>The <code>overflow</code> option works as follows, if <code>thing</code> is an object:</p>
+<p>Note that ISO 8601 and RFC 3339 formats are also subsets of RFC 9557, so will also work.
+Temporal additionally accepts a few ISO 8601 extensions that RFC 9557 does not, like the use of 6-digit years.
+For more info, see <a href="https://tc39.es/proposal-temporal/#sec-temporal-iso8601grammar">RFC 9557 / ISO 8601 Grammar</a>.</p>
+<p>In unusual cases of needing date or time components of <code>Z</code>-terminated timestamp strings (e.g. daily rollover of a UTC-timestamped log file), use the time zone <code>&#39;UTC&#39;</code>. For example, the following code returns a &quot;UTC date&quot;: <code>Temporal.Instant.from(item).toZonedDateTimeISO(&#39;UTC&#39;).toPlainDate()</code>.</p>
+<p>If the string isn&#39;t a valid subset of the RFC 9557 format, then a <code>RangeError</code> will be thrown regardless of the value of <code>overflow</code>.</p>
+<p>The <code>overflow</code> option works as follows, if <code>item</code> is an object:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), any out-of-range values are clamped to the nearest in-range value.</li>
-<li>In <code>reject</code> mode, the presence of out-of-range values will cause the function to throw a <code>RangeError</code>.</li>
+<li>In <code>&#39;constrain&#39;</code> mode (the default), any out-of-range values are clamped to the nearest in-range value (after assuming extension of eras over arbitrary years to substitute <code>era</code> and <code>eraYear</code> with appropriate values for the <code>item</code>).</li>
+<li>In <code>&#39;reject&#39;</code> mode, the presence of out-of-range values (after assuming extension of eras over arbitrary years to substitute <code>era</code> and <code>eraYear</code> with appropriate values for the <code>item</code>) will cause the function to throw a <code>RangeError</code>.</li>
 </ul>
-<p>The <code>overflow</code> option is ignored if <code>thing</code> is a string.</p>
+<p>The <code>overflow</code> option is ignored if <code>item</code> is a string.</p>
 <p>Additionally, if the result is earlier or later than the range of dates that <code>Temporal.PlainDate</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this function will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
 <blockquote>
-<p><strong>NOTE</strong>: The allowed values for the <code>thing.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
+<p><strong>NOTE</strong>: The allowed values for the <code>item.month</code> property start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</p>
 </blockquote>
 <p>Example usage:</p>
 <!-- prettier-ignore-start -->
 <pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-08-24</span>
+date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'20060824'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-08-24</span>
 date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24T15:43:27'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-08-24</span>
 date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24T15:43:27+01:00[Europe/Brussels]'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token comment">// => 2006-08-24</span>
@@ -307,10 +299,8 @@ date <span class="token operator">=</span> Temporal<span class="token punctuatio
   <span class="token comment">// => 2006-08-24</span>
   <span class="token comment">// same as above; Temporal.PlainDateTime has year, month, and day properties</span>
 
-calendar <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>Calendar<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'islamic'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">1427</span><span class="token punctuation">,</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> calendar <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-08-24[u-ca=islamic]</span>
 date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">1427</span><span class="token punctuation">,</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token literal-property property">calendar</span><span class="token operator">:</span> <span class="token string">'islamic'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token comment">// => 2006-08-24[u-ca=islamic] (same as above)</span>
+  <span class="token comment">// => 2006-08-24[u-ca=islamic]</span>
 
 <span class="token comment">// Different overflow modes</span>
 date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2001</span><span class="token punctuation">,</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">13</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">1</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">overflow</span><span class="token operator">:</span> <span class="token string">'constrain'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -344,12 +334,11 @@ For example:</p>
 two <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2015-07-14'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 three <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'1930-02-18'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 sorted <span class="token operator">=</span> <span class="token punctuation">[</span>one<span class="token punctuation">,</span> two<span class="token punctuation">,</span> three<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">sort</span><span class="token punctuation">(</span>Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span>compare<span class="token punctuation">)</span><span class="token punctuation">;</span>
-sorted<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '1930-02-18 2006-08-24 2015-07-14'</span></code></pre><h2 id="properties">Properties</h2>
-<h3 id="year"><a class="heading-link" href="#year"></a>date.<strong>year</strong> : number</h3><h3 id="month"><a class="heading-link" href="#month"></a>date.<strong>month</strong> : number</h3><h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>date.<strong>monthCode</strong> : string</h3><h3 id="day"><a class="heading-link" href="#day"></a>date.<strong>day</strong> : number</h3><p>The above read-only properties allow accessing each component of a date individually.</p>
+sorted<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '1930-02-18 2006-08-24 2015-07-14'</span></code></pre><h2 id="properties"><a class="heading-link" href="#properties"></a>Properties</h3><h3 id="year"><a class="heading-link" href="#year"></a>date.<strong>year</strong> : number</h3><h3 id="month"><a class="heading-link" href="#month"></a>date.<strong>month</strong> : number</h3><h3 id="monthCode"><a class="heading-link" href="#monthCode"></a>date.<strong>monthCode</strong> : string</h3><h3 id="day"><a class="heading-link" href="#day"></a>date.<strong>day</strong> : number</h3><p>The above read-only properties allow accessing each component of a date individually.</p>
 <ul>
 <li><code>year</code> is a signed integer representing the number of years relative to a calendar-specific epoch.
 For calendars that use eras, the anchor is usually aligned with the latest era so that <code>eraYear === year</code> for all dates in that era.
-However, some calendars like Japanese may use a different anchor.</li>
+However, some calendars use a different anchor (e.g., the Japanese calendar <code>year</code> matches the ISO 8601 and Gregorian calendars in counting from ISO year 0001 as <code>1</code>).</li>
 <li><code>month</code> is a positive integer representing the ordinal index of the month in the current year.
 For calendars like Hebrew or Chinese that use leap months, the same-named month may have a different <code>month</code> value depending on the year.
 The first month in every year has <code>month</code> equal to <code>1</code>.
@@ -357,14 +346,12 @@ The last month of every year has <code>month</code> equal to the <code>monthsInY
 <code>month</code> values start at 1, which is different from legacy <code>Date</code> where months are represented by zero-based indices (0 to 11).</li>
 <li><code>monthCode</code> is a calendar-specific string that identifies the month in a year-independent way.
 For common (non-leap) months, <code>monthCode</code> should be <code>`M${month}`</code>, where <code>month</code> is zero padded up to two digits.
-For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with with an &quot;L&quot; suffix appended.
-Examples: <code>&#39;M02&#39;</code> =&gt; February; <code>&#39;M08L&#39;</code> =&gt; repeated 8th month in the Chinese calendar; <code>&#39;M05L&#39;</code> =&gt; Adar I in the Hebrew calendar.<ul>
+For uncommon (leap) months in lunisolar calendars like Hebrew or Chinese, the month code is the previous month&#39;s code with an &quot;L&quot; suffix appended.
+Examples: <code>&#39;M02&#39;</code> =&gt; February; <code>&#39;M08L&#39;</code> =&gt; repeated 8th month in the Chinese calendar; <code>&#39;M05L&#39;</code> =&gt; Adar I in the Hebrew calendar.</li>
 <li><code>day</code> is a positive integer representing the day of the month.</li>
 </ul>
-</li>
-</ul>
 <p>Either <code>month</code> or <code>monthCode</code> can be used in <code>from</code> or <code>with</code> to refer to the month.
-Similarly, in calendars that user eras an <code>era</code>/<code>eraYear</code> pair can be used in place of <code>year</code> when calling <code>from</code> or <code>with</code>.</p>
+Similarly, in calendars that use eras, an <code>era</code>/<code>eraYear</code> pair can be used in place of <code>year</code> when calling <code>from</code> or <code>with</code>.</p>
 <p>Usage examples:</p>
 <!-- prettier-ignore-start -->
 <pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -379,7 +366,7 @@ date<span class="token punctuation">.</span>month<span class="token punctuation"
 date<span class="token punctuation">.</span>monthCode<span class="token punctuation">;</span> <span class="token comment">// => 'M05L'</span>
 date<span class="token punctuation">.</span>day<span class="token punctuation">;</span>       <span class="token comment">// => 18</span></code></pre><!-- prettier-ignore-end -->
 
-<h3 id="calendar"><a class="heading-link" href="#calendar"></a>date.<strong>calendar</strong> : object</h3><p>The <code>calendar</code> read-only property gives the calendar that the <code>year</code>, <code>month</code>, and <code>day</code> properties are interpreted in.</p>
+<h3 id="calendarId"><a class="heading-link" href="#calendarId"></a>date.<strong>calendarId</strong> : string</h3><p>The <code>calendarId</code> read-only property gives the identifier of the calendar that the <code>year</code>, <code>month</code>, <code>monthCode</code>, and <code>day</code> properties are interpreted in.</p>
 <h3 id="era"><a class="heading-link" href="#era"></a>date.<strong>era</strong> : string | undefined</h3><h3 id="eraYear"><a class="heading-link" href="#eraYear"></a>date.<strong>eraYear</strong> : number | undefined</h3><p>In calendars that use eras, the <code>era</code> and <code>eraYear</code> read-only properties can be used together to resolve an era-relative year.
 Both properties are <code>undefined</code> when using the ISO 8601 calendar.
 As inputs to <code>from</code> or <code>with</code>, <code>era</code> and <code>eraYear</code> can be used instead of <code>year</code>.
@@ -404,10 +391,16 @@ console<span class="token punctuation">.</span><span class="token function">log<
 For the ISO 8601 calendar, this is normally a value between 1 and 52, but in a few cases it can be 53 as well.
 ISO week 1 is the week containing the first Thursday of the year.
 For more information on ISO week numbers, see for example the Wikipedia article on <a href="https://en.wikipedia.org/wiki/ISO_week_date">ISO week date</a>.</p>
+<p>When combining the week number with a year number, make sure to use <code>date.yearOfWeek</code> instead of <code>date.year</code>.
+This is because the first few days of a calendar year may be part of the last week of the previous year, and the last few days of a calendar year may be part of the first week of the new year, depending on which year the first Thursday falls in.</p>
 <p>Usage example:</p>
-<pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2022-01-01'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// ISO week date</span>
-console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>date<span class="token punctuation">.</span>year<span class="token punctuation">,</span> date<span class="token punctuation">.</span>weekOfYear<span class="token punctuation">,</span> date<span class="token punctuation">.</span>dayOfWeek<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '2006 34 4'</span></code></pre><h3 id="daysInWeek"><a class="heading-link" href="#daysInWeek"></a>date.<strong>daysInWeek</strong> : number</h3><p>The <code>daysInWeek</code> read-only property gives the number of days in the week that the date falls in.
+console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>date<span class="token punctuation">.</span>yearOfWeek<span class="token punctuation">,</span> date<span class="token punctuation">.</span>weekOfYear<span class="token punctuation">,</span> date<span class="token punctuation">.</span>dayOfWeek<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '2021 52 6'</span></code></pre><h3 id="yearOfWeek"><a class="heading-link" href="#yearOfWeek"></a>date.<strong>yearOfWeek</strong> : number</h3><p>The <code>yearOfWeek</code> read-only property gives the ISO &quot;week calendar year&quot; of the date, which is the year number corresponding to the ISO week number.
+For the ISO 8601 calendar, this is normally the same as <code>date.year</code>, but in a few cases it may be the previous or following year.
+For more information on ISO week numbers, see for example the Wikipedia article on <a href="https://en.wikipedia.org/wiki/ISO_week_date">ISO week date</a>.</p>
+<p>See <code>weekOfYear</code> for a usage example.</p>
+<h3 id="daysInWeek"><a class="heading-link" href="#daysInWeek"></a>date.<strong>daysInWeek</strong> : number</h3><p>The <code>daysInWeek</code> read-only property gives the number of days in the week that the date falls in.
 For the ISO 8601 calendar, this is always 7, but in other calendar systems it may differ from week to week.</p>
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -445,15 +438,14 @@ Its value is <code>true</code> if the year is a leap year, and <code>false</code
 date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>Now<span class="token punctuation">.</span><span class="token function">plainDateISO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 date<span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// example output: true</span>
 <span class="token comment">// Is 2100 a leap year? (no, because it's divisible by 100 and not 400)</span>
-date<span class="token punctuation">.</span><span class="token function">with</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2100</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// => false</span></code></pre><h2 id="methods">Methods</h2>
-<h3 id="with"><a class="heading-link" href="#with"></a>date.<strong>with</strong>(<em>dateLike</em>: object | string, <em>options</em>?: object) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
+date<span class="token punctuation">.</span><span class="token function">with</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">2100</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>inLeapYear<span class="token punctuation">;</span> <span class="token comment">// => false</span></code></pre><h2 id="methods"><a class="heading-link" href="#methods"></a>Methods</h3><h3 id="with"><a class="heading-link" href="#with"></a>date.<strong>with</strong>(<em>dateLike</em>: object, <em>options</em>?: object) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
 <ul>
 <li><code>dateLike</code> (object): an object with some or all of the properties of a <code>Temporal.PlainDate</code>.</li>
 <li><code>options</code> (optional object): An object with properties representing options for the operation.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -476,7 +468,7 @@ date<span class="token punctuation">.</span><span class="token function">with</s
 <span class="token keyword">const</span> nextMonthDate <span class="token operator">=</span> date<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">months</span><span class="token operator">:</span> <span class="token number">1</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 nextMonthDate<span class="token punctuation">.</span><span class="token function">with</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">day</span><span class="token operator">:</span> nextMonthDate<span class="token punctuation">.</span>daysInMonth <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-02-28</span></code></pre><h3 id="withCalendar"><a class="heading-link" href="#withCalendar"></a>date.<strong>withCalendar</strong>(<em>calendar</em>: object | string) : Temporal.PlainDate</h3><p><strong>Parameters:</strong></p>
 <ul>
-<li><code>calendar</code> (<code>Temporal.Calendar</code> or plain object or string): The calendar into which to project <code>date</code>.</li>
+<li><code>calendar</code> (object or string): The calendar into which to project <code>date</code>.</li>
 </ul>
 <p><strong>Returns:</strong> a new <code>Temporal.PlainDate</code> object which is the date indicated by <code>date</code>, projected into <code>calendar</code>.</p>
 <p>Usage example:</p>
@@ -487,8 +479,8 @@ date<span class="token punctuation">.</span><span class="token function">withCal
 <li><code>options</code> (optional object): An object with properties representing options for the addition.
 The following options are recognized:<ul>
 <li><code>overflow</code> (optional string): How to deal with additions that result in out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -496,12 +488,14 @@ The default is <code>constrain</code>.</li>
 <p>This method adds <code>duration</code> to <code>date</code>, returning a date that is in the future relative to <code>date</code>.</p>
 <p>The <code>duration</code> argument is an object with properties denoting a duration, such as <code>{ days: 5 }</code>, or a string such as <code>P5D</code>, or a <code>Temporal.Duration</code> object.
 If <code>duration</code> is not a <code>Temporal.Duration</code> object, then it will be converted to one as if it were passed to <code>Temporal.Duration.from()</code>.</p>
+<p>If <code>duration</code> has any units smaller than <code>days</code>, they will be treated as if they are being added to the first moment of the day given by <code>date</code>.
+Effectively, this means that adding things like <code>{ minutes: 5 }</code> will be ignored.</p>
 <p>Some additions may be ambiguous, because months have different lengths.
 For example, adding one month to August 31 would result in September 31, which doesn&#39;t exist.
 For these cases, the <code>overflow</code> option tells what to do:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), out-of-range values are clamped to the nearest in-range value.</li>
-<li>In <code>reject</code> mode, an addition that would result in an out-of-range value fails, and a <code>RangeError</code> is thrown.</li>
+<li>In <code>&#39;constrain&#39;</code> mode (the default), out-of-range values are clamped to the nearest in-range value.</li>
+<li>In <code>&#39;reject&#39;</code> mode, an addition that would result in an out-of-range value fails, and a <code>RangeError</code> is thrown.</li>
 </ul>
 <p>Additionally, if the result is earlier or later than the range of dates that <code>Temporal.PlainDate</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this method will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
 <p>Adding a negative duration is equivalent to subtracting the absolute value of that duration.</p>
@@ -517,8 +511,8 @@ date<span class="token punctuation">.</span><span class="token function">add</sp
 <li><code>options</code> (optional object): An object with properties representing options for the subtraction.
 The following options are recognized:<ul>
 <li><code>overflow</code> (string): How to deal with subtractions that result in out-of-range values.
-Allowed values are <code>constrain</code> and <code>reject</code>.
-The default is <code>constrain</code>.</li>
+Allowed values are <code>&#39;constrain&#39;</code> and <code>&#39;reject&#39;</code>.
+The default is <code>&#39;constrain&#39;</code>.</li>
 </ul>
 </li>
 </ul>
@@ -526,12 +520,14 @@ The default is <code>constrain</code>.</li>
 <p>This method subtracts <code>duration</code> from <code>date</code>, returning a date that is in the past relative to <code>date</code>.</p>
 <p>The <code>duration</code> argument is an object with properties denoting a duration, such as <code>{ days: 5 }</code>, or a string such as <code>P5D</code>, or a <code>Temporal.Duration</code> object.
 If <code>duration</code> is not a <code>Temporal.Duration</code> object, then it will be converted to one as if it were passed to <code>Temporal.Duration.from()</code>.</p>
+<p>If <code>duration</code> has any units smaller than <code>days</code>, they will be treated as if they are being subtracted from the last moment of the day given by <code>date</code>.
+Effectively, this means that subtracting things like <code>{ minutes: 5 }</code> will be ignored.</p>
 <p>Some subtractions may be ambiguous, because months have different lengths.
 For example, subtracting one month from July 31 would result in June 31, which doesn&#39;t exist.
 For these cases, the <code>overflow</code> option tells what to do:</p>
 <ul>
-<li>In <code>constrain</code> mode (the default), out-of-range values are clamped to the nearest in-range value.</li>
-<li>In <code>reject</code> mode, an addition that would result in an out-of-range value fails, and a <code>RangeError</code> is thrown.</li>
+<li>In <code>&#39;constrain&#39;</code> mode (the default), out-of-range values are clamped to the nearest in-range value.</li>
+<li>In <code>&#39;reject&#39;</code> mode, an addition that would result in an out-of-range value fails, and a <code>RangeError</code> is thrown.</li>
 </ul>
 <p>Additionally, if the result is earlier or later than the range of dates that <code>Temporal.PlainDate</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then this method will throw a <code>RangeError</code> regardless of <code>overflow</code>.</p>
 <p>Subtracting a negative duration is equivalent to adding the absolute value of that duration.</p>
@@ -563,12 +559,12 @@ The default is <code>&#39;trunc&#39;</code>, which truncates any remainder towar
 <p><strong>Returns:</strong> a <code>Temporal.Duration</code> representing the time elapsed after <code>date</code> and until <code>other</code>.</p>
 <p>This method computes the difference between the two dates represented by <code>date</code> and <code>other</code>, optionally rounds it, and returns it as a <code>Temporal.Duration</code> object.
 If <code>other</code> is earlier than <code>date</code> then the resulting duration will be negative.
-The returned <code>Temporal.Duration</code>, when added to <code>date</code> with the same <code>options</code>, will yield <code>other</code>.</p>
+If using the default <code>options</code>, adding the returned <code>Temporal.Duration</code> to <code>date</code> will yield <code>other</code>.</p>
 <p>If <code>other</code> is not a <code>Temporal.PlainDate</code> object, then it will be converted to one as if it were passed to <code>Temporal.PlainDate.from()</code>.</p>
 <p>The <code>largestUnit</code> option controls how the resulting duration is expressed.
 The returned <code>Temporal.Duration</code> object will not have any nonzero fields that are larger than the unit in <code>largestUnit</code>.
-A difference of two years will become 24 months when <code>largestUnit</code> is <code>&quot;months&quot;</code>, for example.
-However, a difference of two months will still be two months even if <code>largestUnit</code> is <code>&quot;years&quot;</code>.
+A difference of two years will become 24 months when <code>largestUnit</code> is <code>&#39;months&#39;</code>, for example.
+However, a difference of two months will still be two months even if <code>largestUnit</code> is <code>&#39;years&#39;</code>.
 A value of <code>&#39;auto&#39;</code> means <code>&#39;day&#39;</code>, unless <code>smallestUnit</code> is <code>&#39;year&#39;</code>, <code>&#39;month&#39;</code>, or <code>&#39;week&#39;</code>, in which case <code>largestUnit</code> is equal to <code>smallestUnit</code>.</p>
 <p>By default, the largest unit in the result is days.
 This is because months and years can be different lengths depending on which month is meant and whether the year is a leap year.</p>
@@ -599,11 +595,11 @@ earlier<span class="token punctuation">.</span><span class="token function">toPl
 
 newyear <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2020-01-01'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 newyear<span class="token punctuation">.</span><span class="token function">until</span><span class="token punctuation">(</span><span class="token string">'2020-01-15'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">smallestUnit</span><span class="token operator">:</span> <span class="token string">'month'</span><span class="token punctuation">,</span> <span class="token literal-property property">roundingMode</span><span class="token operator">:</span> <span class="token string">'halfExpand'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token comment">// => PT0S </span>
+  <span class="token comment">// => PT0S</span>
 newyear<span class="token punctuation">.</span><span class="token function">until</span><span class="token punctuation">(</span><span class="token string">'2020-01-16'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">smallestUnit</span><span class="token operator">:</span> <span class="token string">'month'</span><span class="token punctuation">,</span> <span class="token literal-property property">roundingMode</span><span class="token operator">:</span> <span class="token string">'halfExpand'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token comment">// => PT0S (mid-month dates rounded down to match `Temporal.PlainDateTime` behavior)</span>
 newyear<span class="token punctuation">.</span><span class="token function">until</span><span class="token punctuation">(</span><span class="token string">'2020-01-17'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">smallestUnit</span><span class="token operator">:</span> <span class="token string">'month'</span><span class="token punctuation">,</span> <span class="token literal-property property">roundingMode</span><span class="token operator">:</span> <span class="token string">'halfExpand'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token comment">// => PT1M </span></code></pre><!-- prettier-ignore-end -->
+  <span class="token comment">// => PT1M</span></code></pre><!-- prettier-ignore-end -->
 
 <h3 id="since"><a class="heading-link" href="#since"></a>date.<strong>since</strong>(<em>other</em>: Temporal.PlainDate | object | string, <em>options</em>?: object) : Temporal.Duration</h3><p><strong>Parameters:</strong></p>
 <ul>
@@ -628,8 +624,7 @@ The default is <code>&#39;trunc&#39;</code>, which truncates any remainder towar
 <p>This method computes the difference between the two dates represented by <code>date</code> and <code>other</code>, optionally rounds it, and returns it as a <code>Temporal.Duration</code> object.
 If <code>other</code> is later than <code>date</code> then the resulting duration will be negative.</p>
 <p>This method is similar to <code>Temporal.PlainDate.prototype.until()</code>, but reversed.
-The returned <code>Temporal.Duration</code>, when subtracted from <code>date</code> using the same <code>options</code>, will yield <code>other</code>.
-Using default options, <code>date1.since(date2)</code> yields the same result as <code>date1.until(date2).negated()</code>, but results may differ with options like <code>{ largestUnit: &#39;month&#39; }</code>.</p>
+If using the default <code>options</code>, subtracting the returned <code>Temporal.Duration</code> from <code>date</code> will yield <code>other</code>, and <code>date1.since(date2)</code> will yield the same result as <code>date1.until(date2).negated()</code>.</p>
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">earlier <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 later <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2019-01-31'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -657,11 +652,12 @@ The default is <code>&#39;auto&#39;</code>.</li>
 </ul>
 </li>
 </ul>
-<p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>date</code>.</p>
+<p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>date</code>.</p>
 <p>This method overrides the <code>Object.prototype.toString()</code> method and provides a convenient, unambiguous string representation of <code>date</code>.
 The string can be passed to <code>Temporal.PlainDate.from()</code> to create a new <code>Temporal.PlainDate</code> object.</p>
 <p>Normally, a calendar annotation is shown when <code>date</code>&#39;s calendar is not the ISO 8601 calendar.
 By setting the <code>calendarName</code> option to <code>&#39;always&#39;</code> or <code>&#39;never&#39;</code> this can be overridden to always or never show the annotation, respectively.
+With <code>calendarName: &#39;never&#39;</code> the returned string will additionally be valid in the ISO 8601 and RFC 3339 date formats.
 Normally not necessary, a value of <code>&#39;critical&#39;</code> is equivalent to <code>&#39;always&#39;</code> but the annotation will contain an additional <code>!</code> for certain interoperation use cases.
 For more information on the calendar annotation, see <a href="./strings.html#calendar-systems">the <code>Temporal</code> string formats documentation</a>.</p>
 <p>Example usage:</p>
@@ -673,13 +669,13 @@ date<span class="token punctuation">.</span><span class="token function">toStrin
 </ul>
 <p><strong>Returns:</strong> a language-sensitive representation of <code>date</code>.</p>
 <p>This method overrides <code>Object.prototype.toLocaleString()</code> to provide a human-readable, language-sensitive representation of <code>date</code>.</p>
-<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat"><code>Intl.DateTimeFormat</code></a>.</p>
+<p>The <code>locales</code> and <code>options</code> arguments are the same as in the constructor to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#parameters"><code>Intl.DateTimeFormat</code></a>.</p>
 <p>Example usage:</p>
 <pre class="language-js"><code class="language-js">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 date<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// example output: 8/24/2006</span>
 date<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// example output: '24.8.2006'</span>
 date<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'de-DE'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">weekday</span><span class="token operator">:</span> <span class="token string">'long'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 'Donnerstag'</span>
-date<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'en-US-u-nu-fullwide'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '８/２４/２００６'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>date.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the ISO 8601 date format representing <code>date</code>.</p>
+date<span class="token punctuation">.</span><span class="token function">toLocaleString</span><span class="token punctuation">(</span><span class="token string">'en-US-u-nu-fullwide'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '８/２４/２００６'</span></code></pre><h3 id="toJSON"><a class="heading-link" href="#toJSON"></a>date.<strong>toJSON</strong>() : string</h3><p><strong>Returns:</strong> a string in the RFC 9557 date format representing <code>date</code>.</p>
 <p>This method is the same as <code>date.toString()</code>.
 It is usually not called directly, but it can be called automatically by <code>JSON.stringify()</code>.</p>
 <p>The reverse operation, recovering a <code>Temporal.PlainDate</code> object from a string, is <code>Temporal.PlainDate.from()</code>, but it cannot be called automatically by <code>JSON.parse()</code>.
@@ -712,25 +708,25 @@ Use <code>Temporal.PlainDate.compare()</code> for this, or <code>date.equals()</
 <ul>
 <li><code>item</code> (object): an object with properties to be added to <code>date</code>. The following properties are recognized:<ul>
 <li><code>plainTime</code> (optional <code>Temporal.PlainTime</code> or value convertible to one): a time of day on <code>date</code> used to merge into a <code>Temporal.ZonedDateTime</code>.</li>
-<li><code>timeZone</code> (required <code>Temporal.TimeZone</code> or value convertible to one, or an object implementing the <a href="./timezone.html#custom-time-zones">time zone protocol</a>): the time zone in which to interpret <code>date</code> and <code>plainTime</code>.</li>
+<li><code>timeZone</code> (required string or <code>Temporal.ZonedDateTime</code>): the time zone in which to interpret <code>date</code> and <code>plainTime</code>, as a time zone identifier, or a <code>Temporal.ZonedDateTime</code> object whose time zone will be used.</li>
 </ul>
 </li>
 </ul>
 <p><strong>Returns:</strong> a <code>Temporal.ZonedDateTime</code> object that represents the wall-clock time <code>plainTime</code> on the calendar date <code>date</code> projected into <code>timeZone</code>.</p>
 <p>This method can be used to convert <code>Temporal.PlainDate</code> into a <code>Temporal.ZonedDateTime</code>, by supplying the time zone and time of day.
 The default <code>plainTime</code>, if it&#39;s not provided, is the first valid local time in <code>timeZone</code> on the calendar date <code>date</code>.
-Usually this is midnight (<code>00:00</code>), but may be a different time in rare circumstances like DST starting at midnight or calendars like <code>ethiopic</code> where each day doesn&#39;t start at midnight.</p>
+Usually this is midnight (<code>00:00</code>), but may be a different time in rare circumstances like DST skipping midnight.</p>
 <p>For a list of IANA time zone names, see the current version of the <a href="https://www.iana.org/time-zones">IANA time zone database</a>.
 A convenient list is also available <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">on Wikipedia</a>, although it might not reflect the latest official status.</p>
 <p>In addition to the <code>timeZone</code>, the converted object carries a copy of all the relevant fields of <code>date</code> and <code>plainTime</code>.
-If <code>plainTime</code> is given, this method is equivalent to <a href="./plaintime.html#toZonedDateTime"><code>Temporal.PlainTime.from(plainTime).toZonedDateTime(date)</code></a>.</p>
-<p>If <code>plainTime</code> is given but is not a <code>Temporal.PlainTime</code> object, then it will be converted to one as if it were passed to <code>Temporal.PlainTime.from()</code>.</p>
+If <code>plainTime</code> is provided but is not a <code>Temporal.PlainTime</code> object, then it will be converted to one as if it were passed to <code>Temporal.PlainTime.from()</code>.
+If <code>plainTime</code> is provided, this method is equivalent to <a href="./plaintime.html#toZonedDateTime"><code>Temporal.PlainTime.from(plainTime).toPlainDateTime(date).toZonedDateTime(timeZone)</code></a>.</p>
 <p>In the case of ambiguity caused by DST or other time zone changes, the earlier time will be used for backward transitions and the later time for forward transitions.
 When interoperating with existing code or services, this matches the behavior of legacy <code>Date</code> as well as libraries like moment.js, Luxon, and date-fns.
 This mode also matches the behavior of cross-platform standards like <a href="https://tools.ietf.org/html/rfc5545">RFC 5545 (iCalendar)</a>.</p>
 <p>During &quot;skipped&quot; clock time like the hour after DST starts in the Spring, this method interprets invalid times using the pre-transition time zone offset.
-This behavior avoids exceptions when converting non-existent date/time values to <code>Temporal.ZonedDateTime</code>, but it also means that values during these periods will result in a different <code>Temporal.PlainTime</code> value in &quot;round-trip&quot; conversions to <code>Temporal.ZonedDateTime</code> and back again.</p>
-<p>For usage examples and a more complete explanation of how this disambiguation works, see <a href="./ambiguity.html">Resolving ambiguity</a>.</p>
+This behavior avoids exceptions when converting nonexistent date/time values to <code>Temporal.ZonedDateTime</code>, but it also means that values during these periods will result in a different <code>Temporal.PlainTime</code> value in &quot;round-trip&quot; conversions to <code>Temporal.ZonedDateTime</code> and back again.</p>
+<p>For usage examples and a more complete explanation of how this disambiguation works, see <a href="./timezone.html">Time Zones and Resolving Ambiguity</a>.</p>
 <p>If the result is outside the range that <code>Temporal.ZonedDateTime</code> can represent (approximately half a million years centered on the <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch</a>), then a <code>RangeError</code> will be thrown.</p>
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">plainDate <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -759,24 +755,7 @@ The converted object carries a copy of all the relevant fields of <code>date</co
 <p>Usage example:</p>
 <pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 date<span class="token punctuation">.</span><span class="token function">toPlainYearMonth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2006-08</span>
-date<span class="token punctuation">.</span><span class="token function">toPlainMonthDay</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span></code></pre><h3 id="getISOFields"><a class="heading-link" href="#getISOFields"></a>date.<strong>getISOFields</strong>(): { isoYear: number, isoMonth: number, isoDay: number, calendar: object }</h3><p><strong>Returns:</strong> a plain object with properties expressing <code>date</code> in the ISO 8601 calendar, as well as the value of <code>date.calendar</code>.</p>
-<p>This method is mainly useful if you are implementing a custom calendar.
-Most code will not need to use it.</p>
-<p>Usage example:</p>
-<pre class="language-javascript"><code class="language-javascript">date <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>PlainDate<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'2006-08-24'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f <span class="token operator">=</span> date<span class="token punctuation">.</span><span class="token function">getISOFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f<span class="token punctuation">.</span>isoDay<span class="token punctuation">;</span> <span class="token comment">// => 24</span>
-<span class="token comment">// Fields correspond exactly to constructor arguments:</span>
-date2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Temporal<span class="token punctuation">.</span>PlainDate</span><span class="token punctuation">(</span>f<span class="token punctuation">.</span>isoYear<span class="token punctuation">,</span> f<span class="token punctuation">.</span>isoMonth<span class="token punctuation">,</span> f<span class="token punctuation">.</span>isoDay<span class="token punctuation">,</span> f<span class="token punctuation">.</span>calendar<span class="token punctuation">)</span><span class="token punctuation">;</span>
-date<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>date2<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => true</span>
-
-<span class="token comment">// Date in other calendar</span>
-date <span class="token operator">=</span> date<span class="token punctuation">.</span><span class="token function">withCalendar</span><span class="token punctuation">(</span><span class="token string">'hebrew'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-date<span class="token punctuation">.</span>day<span class="token punctuation">;</span> <span class="token comment">// => 30</span>
-date<span class="token punctuation">.</span><span class="token function">getISOFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>isoDay<span class="token punctuation">;</span> <span class="token comment">// => 24</span>
-
-<span class="token comment">// Most likely what you need is this:</span>
-date<span class="token punctuation">.</span><span class="token function">withCalendar</span><span class="token punctuation">(</span><span class="token string">'iso8601'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>day<span class="token punctuation">;</span> <span class="token comment">// => 24</span></code></pre>    <footer>
+date<span class="token punctuation">.</span><span class="token function">toPlainMonthDay</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 08-24</span></code></pre>    <footer>
       <p>
         This page includes a script which loads an implementation of Temporal in your browser.
         You can open a console in your browser's developer tools and try it out directly!

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Temporal documentation</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
-    <script type="application/javascript" src="./playground.js"></script>
-    <link rel="stylesheet" type="text/css" href="./prism.css">
+    <script type="application/javascript" src="../playground.js"></script>
+    <link rel="stylesheet" type="text/css" href="../prism.css">
     <script>
       Temporal = { ...temporal.Temporal };
       Object.assign(Intl, temporal.Intl);
@@ -18,13 +18,11 @@
         header(x) {
           for (const type of [
             Temporal.Instant,
-            Temporal.Calendar,
             Temporal.PlainDate,
             Temporal.PlainDateTime,
             Temporal.Duration,
             Temporal.PlainMonthDay,
             Temporal.PlainTime,
-            Temporal.TimeZone,
             Temporal.PlainYearMonth
           ]) {
             if (x instanceof type) return ['span', {}, `${x[Symbol.toStringTag]} <${x}>`];
@@ -111,19 +109,9 @@
       }
       .heading-link:hover { text-decoration: none; }
       .heading-link::before { content: '¶'; }
-      h3:hover .heading-link { opacity: 1; }
+      h2:hover .heading-link, h3:hover .heading-link, h4:hover .heading-link, h5:hover .heading-link { opacity: 0.75; }
       .banner {
-        /* Gradient from https://joshnh.com/weblog/how-to-make-an-alert-bar/ */
-        background-color: #fce94f;
-        background-image: linear-gradient(135deg,
-                                          transparent,
-                                          transparent 25%,
-                                          rgba(0, 0, 0, .05) 25%,
-                                          rgba(0, 0, 0, .05) 50%,
-                                          transparent 50%,
-                                          transparent 75%,
-                                          rgba(0, 0, 0, .05) 75%,
-                                          rgba(0, 0, 0, .05));
+        background-color: #ffcc7a;
         background-size: 20px 20px;
         box-shadow: 0 5px 0 rgba(0, 0, 0, .1);
         left: 0;
@@ -137,11 +125,12 @@
   </head>
   <body>
     <div class="banner">
-      This Stage 3 proposal is <strong><a href="https://blogs.igalia.com/compilers/2020/06/23/dates-and-times-in-javascript/">experimental.</a></strong>
-      <strong>Do</strong> try it and <a href="https://github.com/tc39/proposal-temporal/issues">report bugs</a>; <strong>don't</strong> use it in production!
+      Please visit Temporal documentation on <strong>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal">MDN,</a>
+      </strong> the main API reference going forward.
+      Or see our <strong><a href="cookbook.html">cookbook</a></strong>.
     </div>
-<h1 id="temporal">Temporal</h1>
-<details>
+<h1 id="temporal"><a class="heading-link" href="#temporal"></a>Temporal</h3><details>
   <summary><strong>Table of Contents</strong></summary>
 <ul>
 <li><a href="#介绍">介绍</a>
@@ -191,8 +180,7 @@
 </ul>
 </details>
 
-<h2 id="介绍">介绍</h2>
-<p><code>Date</code> 一直是 ECMAScript 长期以来的痛点。这是一个关于 <code>Temporal</code> 的提议，它是一个全局对象，像 <code>Math</code> 一样位于顶级命名空间中，为 ECMAScript 语言带来了现代化的日期、时间接口。
+<h2 id="介绍"><a class="heading-link" href="#介绍"></a>介绍</h3><p><code>Date</code> 一直是 ECMAScript 长期以来的痛点。这是一个关于 <code>Temporal</code> 的提议，它是一个全局对象，像 <code>Math</code> 一样位于顶级命名空间中，为 ECMAScript 语言带来了现代化的日期、时间接口。
 关于 <code>Date</code> 的一些问题，和 Temporal 的目的，具体参考<a href="https://maggiepint.com/2017/04/09/fixing-javascript-date-getting-started/">修复 JavaScript 日期</a>。</p>
 <p>Temporal 通过以下方式解决了这些问题：</p>
 <ul>
@@ -203,12 +191,10 @@
 <li>支持非公历历法</li>
 </ul>
 <p>Temporal 为日期、时间和其它的有限情况提供了单独的 ECMAScript 类。这提高了代码的可读性，并防止了一些因 0 或 UTC 或错误的时区而引发的 BUG。</p>
-<h2 id="cookbook">Cookbook</h2>
-<p><a href="../cookbook.html">cookbook</a> 可以帮助你开始了解和学习 Temporal 的工作原理。</p>
-<h2 id="api-文档">API 文档</h2>
-<p>Temporal 的接口遵循惯例，使用以 &quot;Plain&quot; 开头的类型名（如 <code>Temporal.PlainDate</code>，<code>Temporal.PlainTime</code>，和 <code>Temporal.PlainDateTime</code>）表示没有与之关联时区的对象。
+<h2 id="cookbook"><a class="heading-link" href="#cookbook"></a>Cookbook</h3><p><a href="../cookbook.html">cookbook</a> 可以帮助你开始了解和学习 Temporal 的工作原理。</p>
+<h2 id="api-文档"><a class="heading-link" href="#api-文档"></a>API 文档</h3><p>Temporal 的接口遵循惯例，使用以 &quot;Plain&quot; 开头的类型名（如 <code>Temporal.PlainDate</code>，<code>Temporal.PlainTime</code>，和 <code>Temporal.PlainDateTime</code>）表示没有与之关联时区的对象。
 由于时区和夏令时的关系，在这种类型和精确时间类型（<code>Temporal.Instant</code> 和 <code>Temporal.ZonedDateTime</code>）之间转换可能存在歧义，Temporal API 允许开发者来配置如何解决这种歧义。</p>
-<p>几个重要的概念将在其它地方解释：<a href="../ambiguity.html">精确时间，钟表时间，时区，夏令时，处理歧义等</a>。</p>
+<p>几个重要的概念将在其它地方解释：<a href="../timezone.html">精确时间，钟表时间，时区，夏令时，处理歧义等</a>。</p>
 <h3 id="Temporal-Now"><a class="heading-link" href="#Temporal-Now"></a><strong>Temporal.Now</strong></h3><ul>
 <li><code>Temporal.Now.instant()</code> - 获取自<a href="https://en.wikipedia.org/wiki/Unix_time">Unix 时间</a>以来的精确时间</li>
 <li><code>Temporal.Now.timeZone()</code> - 获取当前系统时区</li>
@@ -223,7 +209,7 @@
 <pre class="language-js"><code class="language-js">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Initialization complete'</span><span class="token punctuation">,</span> Temporal<span class="token punctuation">.</span>Now<span class="token punctuation">.</span><span class="token function">instant</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">// 示例输出：</span>
 <span class="token comment">// Initialization complete 2021-01-13T20:57:01.500944804Z</span></code></pre><p>更多详细内容参见 <a href="../now.html">Temporal.Now 文档</a>。</p>
-<h3 id="Temporal-Instant"><a class="heading-link" href="#Temporal-Instant"></a><strong>Temporal.Instant</strong></h3><p><code>Temporal.Instant</code> 代表一个固定的时间点（称为 **&quot;精确时间&quot;**），不考虑历法和地点，例如：UTC 时间 1969 年 7 月 20 日 20 时 17 分。</p>
+<h3 id="Temporal-Instant"><a class="heading-link" href="#Temporal-Instant"></a><strong>Temporal.Instant</strong></h3><p><code>Temporal.Instant</code> 代表一个固定的时间点（称为 <strong>&quot;精确时间&quot;</strong>），不考虑历法和地点，例如：UTC 时间 1969 年 7 月 20 日 20 时 17 分。</p>
 <p>为了获得人类可读的时间表示，可以使用 <code>Temporal.TimeZone</code> 或 <code>Temporal.Calendar</code> 与 <code>Temporal.ZonedDateTime</code> 或 <code>Temporal.PlainDateTime</code> 相结合。</p>
 <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> instant <span class="token operator">=</span> Temporal<span class="token punctuation">.</span>Instant<span class="token punctuation">.</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">'1969-07-20T20:17Z'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 instant<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => '1969-07-20T20:17:00Z'</span>
@@ -289,8 +275,7 @@ date<span class="token punctuation">.</span>dayOfWeek<span class="token punctuat
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 duration<span class="token punctuation">.</span><span class="token function">total</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">unit</span><span class="token operator">:</span> <span class="token string">'second'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 469200</span></code></pre><p>更多详细内容参见 <a href="../duration.html">Temporal.Duration 文档</a>。</p>
-<h4 id="时间平衡">时间平衡</h4>
-<p>与 <code>Temporal</code> 的其它的类型不同，<code>Temporal.Duration</code> 并不会自然转换：你可能想要一个“90 分钟”的时长，而不希望它意外的变成“1 小时 30 分钟”。</p>
+<h4 id="时间平衡"><a class="heading-link" href="#时间平衡"></a>时间平衡</h3><p>与 <code>Temporal</code> 的其它的类型不同，<code>Temporal.Duration</code> 并不会自然转换：你可能想要一个“90 分钟”的时长，而不希望它意外的变成“1 小时 30 分钟”。</p>
 <p>更多详细内容参见 <a href="../balancing.html">时间平衡</a>。</p>
 <h3 id="Temporal-TimeZone"><a class="heading-link" href="#Temporal-TimeZone"></a><strong>Temporal.TimeZone</strong></h3><p><code>Temporal.TimeZone</code> 代表一个 IANA 时区，一个特定的 UTC 偏移，或 UTC 本身。TimeZone 将 UTC 日期/时间转换为本地日期/时间。
 因此，<code>Temporal.TimeZone</code> 可以用来在 <code>Temporal.Instant</code> 和 <code>Temporal.PlainDateTime</code> 之间进行转换，以及找出特定 <code>Temporal.Instant</code> 的偏移。</p>
@@ -300,7 +285,7 @@ timeZone<span class="token punctuation">.</span><span class="token function">get
 timeZone<span class="token punctuation">.</span><span class="token function">getPlainDateTimeFor</span><span class="token punctuation">(</span><span class="token string">'2000-01-01T00:00Z'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2000-01-01T02:00:00</span>
 timeZone<span class="token punctuation">.</span><span class="token function">getPreviousTransition</span><span class="token punctuation">(</span>Temporal<span class="token punctuation">.</span>Now<span class="token punctuation">.</span><span class="token function">instant</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => 2014-09-25T21:00:00Z</span>
 timeZone<span class="token punctuation">.</span><span class="token function">getNextTransition</span><span class="token punctuation">(</span>Temporal<span class="token punctuation">.</span>Now<span class="token punctuation">.</span><span class="token function">instant</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// => null</span></code></pre><p>更多详细内容参见 <a href="../timezone.html">Temporal.TimeZone 文档</a>。</p>
-<p>有关时区，夏令时，解决歧义的概念解释，见<a href="../ambiguity.html">此文档</a>。</p>
+<p>有关时区，夏令时，解决歧义的概念解释，见<a href="../timezone.html">此文档</a>。</p>
 <h3 id="Temporal-Calendar"><a class="heading-link" href="#Temporal-Calendar"></a><strong>Temporal.Calendar</strong></h3><p><code>Temporal.Calendar</code> 代表一个日历系统。大多数代码使用 ISO 8601 格式，但其它的日历系统同样支持。</p>
 <p>日期与用于执行日历系统相关操作的 <code>Temporal.Calendar</code> 对象相关联。在内部，这些日期操作是由这个日历对象上的方法来完成的。</p>
 <p>也可以实现你自己的日历系统。</p>
@@ -308,17 +293,14 @@ timeZone<span class="token punctuation">.</span><span class="token function">get
 <span class="token keyword">const</span> date <span class="token operator">=</span> cal<span class="token punctuation">.</span><span class="token function">dateFromFields</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">year</span><span class="token operator">:</span> <span class="token number">1999</span><span class="token punctuation">,</span> <span class="token literal-property property">month</span><span class="token operator">:</span> <span class="token number">12</span><span class="token punctuation">,</span> <span class="token literal-property property">day</span><span class="token operator">:</span> <span class="token number">31</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 date<span class="token punctuation">.</span>monthsInYear<span class="token punctuation">;</span> <span class="token comment">// => 12</span>
 date<span class="token punctuation">.</span>daysInYear<span class="token punctuation">;</span> <span class="token comment">// => 365</span></code></pre><p>更多详细内容参见 <a href="../calendar.html">Temporal.Calendar 文档</a>。</p>
-<h2 id="对象关系">对象关系</h2>
-<img src="../object-model.svg">
+<h2 id="对象关系"><a class="heading-link" href="#对象关系"></a>对象关系</h3><img src="../object-model.svg">
 
-<h2 id="字符串持久化">字符串持久化</h2>
-<p>为了持久性和互操作性，所有的 <code>Temporal</code> 类型都有一个字符串表示。类型和字符串之间的对应关系如下所示。
+<h2 id="字符串持久化"><a class="heading-link" href="#字符串持久化"></a>字符串持久化</h3><p>为了持久性和互操作性，所有的 <code>Temporal</code> 类型都有一个字符串表示。类型和字符串之间的对应关系如下所示。
 关于 Temporal 中使用的 ISO 8601 和 RFC 3339 的更多信息和标准化工作，请参考 <a href="../strings.html">ISO 字符串扩展</a>。</p>
 <img src="../persistence-model.svg">
 
-<h2 id="其它文档">其它文档</h2>
-<h3 id="----"><a class="heading-link" href="#----"></a><strong>主要概念</strong></h3><ul>
-<li><a href="../ambiguity.html">Ambiguity</a> &mdash; 解释由于夏令时和时区变化造成的时间缺失和时间重复。</li>
+<h2 id="其它文档"><a class="heading-link" href="#其它文档"></a>其它文档</h3><h3 id="----"><a class="heading-link" href="#----"></a><strong>主要概念</strong></h3><ul>
+<li><a href="../timezone.html">Time Zones and Resolving Ambiguity</a> &mdash; 解释由于夏令时和时区变化造成的时间缺失和时间重复。</li>
 <li><a href="../balancing.html">Balancing</a> &mdash; 解释什么时候 <code>Temporal.Duration</code> 的单位会自然转换，什么时候不会。</li>
 <li><a href="../calendar-review.html">Why do Temporal instances have a Calendar?</a> &mdash; 关于为什么像 <code>Temporal.PlainDate</code> 或 <code>Temporal.ZonedDateTime</code> 类型包含日历系统。这些扩展正在与 IETF 积极合作以使其进入标准化流程。</li>
 </ul>

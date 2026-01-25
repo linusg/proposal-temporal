@@ -8418,10 +8418,7 @@
 	function ToPositiveIntegerWithTruncation(value, property) {
 	  const integer = ToIntegerWithTruncation(value);
 	  if (integer <= 0) {
-	    if (property !== undefined) {
-	      throw new RangeError$1(`property '${property}' cannot be a a number less than one`);
-	    }
-	    throw new RangeError$1('Cannot convert a number less than one to a positive integer');
+	    throw new RangeError$1(`property '${property}' cannot be a a number less than one`);
 	  }
 	  return integer;
 	}
@@ -8456,7 +8453,7 @@
 	  return value;
 	}
 	const CALENDAR_FIELD_KEYS = ['era', 'eraYear', 'year', 'month', 'monthCode', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond', 'offset', 'timeZone'];
-	const BUILTIN_CASTS = new Map$1([['era', ToString$1], ['eraYear', ToIntegerWithTruncation], ['year', ToIntegerWithTruncation], ['month', ToPositiveIntegerWithTruncation], ['monthCode', ToMonthCode], ['day', ToPositiveIntegerWithTruncation], ['hour', ToIntegerWithTruncation], ['minute', ToIntegerWithTruncation], ['second', ToIntegerWithTruncation], ['millisecond', ToIntegerWithTruncation], ['microsecond', ToIntegerWithTruncation], ['nanosecond', ToIntegerWithTruncation], ['offset', ToOffsetString], ['timeZone', ToTemporalTimeZoneIdentifier]]);
+	const BUILTIN_CASTS = new Map$1([['era', ToString$1], ['eraYear', ToIntegerWithTruncation], ['year', ToIntegerWithTruncation], ['month', value => ToPositiveIntegerWithTruncation(value, 'month')], ['monthCode', ToMonthCode], ['day', value => ToPositiveIntegerWithTruncation(value, 'day')], ['hour', ToIntegerWithTruncation], ['minute', ToIntegerWithTruncation], ['second', ToIntegerWithTruncation], ['millisecond', ToIntegerWithTruncation], ['microsecond', ToIntegerWithTruncation], ['nanosecond', ToIntegerWithTruncation], ['offset', ToOffsetString], ['timeZone', ToTemporalTimeZoneIdentifier]]);
 	const BUILTIN_DEFAULTS = new Map$1([['hour', 0], ['minute', 0], ['second', 0], ['millisecond', 0], ['microsecond', 0], ['nanosecond', 0]]);
 
 	// each item is [plural, singular, category, (length in ns)]
@@ -8578,6 +8575,12 @@
 	  const day = +match.groups.daypart;
 	  assert(month !== undefined && day !== undefined, `Month and day must be present if string ${isoString} matched`);
 	  const hasTime = match.groups.hour !== undefined;
+	  const hasMinute = match.groups.minute !== undefined;
+	  const hasSecond = match.groups.second !== undefined;
+	  const hasFraction = match.groups.fraction !== undefined;
+	  if (hasFraction && (!hasSecond || !hasMinute && hasTime)) {
+	    throw new RangeError$1(`invalid RFC 9557 string: ${isoString}, only seconds may be fractional`);
+	  }
 	  const hour = +(match.groups.hour ?? 0);
 	  const minute = +(match.groups.minute ?? 0);
 	  let second = +(match.groups.second ?? 0);
@@ -8635,6 +8638,13 @@
 	  let hour, minute, second, millisecond, microsecond, nanosecond, calendar;
 	  if (match) {
 	    calendar = processAnnotations(match.groups.annotation);
+	    const hasFraction = match.groups.fraction !== undefined;
+	    const hasSecond = match.groups.second !== undefined;
+	    const hasMinute = match.groups.minute !== undefined;
+	    const hasHour = match.groups.hour !== undefined;
+	    if (hasFraction && (!hasSecond || !hasMinute && hasHour)) {
+	      throw new RangeError$1(`invalid RFC 9557 string: ${isoString}, only seconds may be fractional`);
+	    }
 	    hour = +match.groups.hour;
 	    assert(hour !== undefined, `Hour must be present if string ${isoString} matched`);
 	    minute = +(match.groups.minute ?? 0);
@@ -8981,14 +8991,14 @@
 	  let {
 	    years,
 	    months,
-	    weeks,
-	    days
+	    weeks
 	  } = _ref3;
+	  assert(newDays !== undefined, 'days must be provided to AdjustDateDurationRecord');
 	  return {
 	    years,
 	    months: newMonths ?? months,
 	    weeks: newWeeks ?? weeks,
-	    days: newDays ?? days
+	    days: newDays
 	  };
 	}
 	function ZeroDateDuration() {
@@ -9519,14 +9529,15 @@
 	    offset,
 	    z
 	  } = ParseTemporalInstantString(RequireString(item));
+	  assert(time !== 'start-of-day', 'Instant string must include a time');
 	  const {
-	    hour = 0,
-	    minute = 0,
-	    second = 0,
-	    millisecond = 0,
-	    microsecond = 0,
-	    nanosecond = 0
-	  } = time === 'start-of-day' ? {} : time;
+	    hour,
+	    minute,
+	    second,
+	    millisecond,
+	    microsecond,
+	    nanosecond
+	  } = time;
 
 	  // ParseTemporalInstantString ensures that either `z` is true or or `offset` is non-undefined
 	  const offsetNanoseconds = z ? 0 : ParseDateTimeUTCOffset(offset);
@@ -9934,6 +9945,14 @@
 	  return result;
 	}
 	function CalendarDateUntil(calendar, isoDate, isoOtherDate, largestUnit) {
+	  if (CompareISODate(isoDate, isoOtherDate) === 0) {
+	    return {
+	      years: 0,
+	      months: 0,
+	      weeks: 0,
+	      days: 0
+	    };
+	  }
 	  return calendarImplForID(calendar).dateUntil(isoDate, isoOtherDate, largestUnit);
 	}
 	function ToTemporalCalendarIdentifier(calendarLike) {
@@ -10035,9 +10054,9 @@
 	    // can come from the argument of TimeZone.p.equals as opposed to the first
 	    // ID which comes from the receiver.
 	    const idRecord2 = GetAvailableNamedTimeZoneIdentifier(two);
-	    if (!idRecord2) return false;
+	    assert(idRecord2, `${JSONStringify(two)} has an invalid time zone`);
 	    const idRecord1 = GetAvailableNamedTimeZoneIdentifier(one);
-	    if (!idRecord1) return false;
+	    assert(idRecord1, `${JSONStringify(one)} has an invalid time zone`);
 	    return idRecord1.primaryIdentifier === idRecord2.primaryIdentifier;
 	  } else {
 	    return offsetMinutes1 === offsetMinutes2;
@@ -10116,7 +10135,7 @@
 	      {
 	        const timeDuration = TimeDuration.fromComponents(0, 0, 0, 0, 0, -nanoseconds);
 	        const earlierTime = AddTime(isoDateTime.time, timeDuration);
-	        const earlierDate = BalanceISODate(isoDateTime.isoDate.year, isoDateTime.isoDate.month, isoDateTime.isoDate.day + earlierTime.deltaDays);
+	        const earlierDate = AddDaysToISODate(isoDateTime.isoDate, earlierTime.deltaDays);
 	        const earlier = CombineISODateAndTimeRecord(earlierDate, earlierTime);
 	        return GetPossibleEpochNanoseconds(timeZone, earlier)[0];
 	      }
@@ -10126,7 +10145,7 @@
 	      {
 	        const timeDuration = TimeDuration.fromComponents(0, 0, 0, 0, 0, nanoseconds);
 	        const laterTime = AddTime(isoDateTime.time, timeDuration);
-	        const laterDate = BalanceISODate(isoDateTime.isoDate.year, isoDateTime.isoDate.month, isoDateTime.isoDate.day + laterTime.deltaDays);
+	        const laterDate = AddDaysToISODate(isoDateTime.isoDate, laterTime.deltaDays);
 	        const later = CombineISODateAndTimeRecord(laterDate, laterTime);
 	        const possible = GetPossibleEpochNanoseconds(timeZone, later);
 	        return possible[possible.length - 1];
@@ -10808,7 +10827,7 @@
 	  return Call$1(ArrayPrototypeFilter, candidates, [x => x !== undefined]);
 	}
 	function LeapYear(year) {
-	  if (undefined === year) return false;
+	  assert(year !== undefined, 'undefined year in LeapYear');
 	  const isDiv4 = year % 4 === 0;
 	  const isDiv100 = year % 100 === 0;
 	  const isDiv400 = year % 400 === 0;
@@ -10843,7 +10862,7 @@
 	  return duration.time.sign();
 	}
 	function BalanceISOYearMonth(year, month) {
-	  if (!NumberIsFinite(year) || !NumberIsFinite(month)) throw new RangeError$1('infinity is out of range');
+	  assert(NumberIsFinite(year) && NumberIsFinite(month), 'BalanceISOYearMonth: infinity is out of range');
 	  month -= 1;
 	  year += MathFloor(month / 12);
 	  month %= 12;
@@ -10854,12 +10873,12 @@
 	    month
 	  };
 	}
-	function BalanceISODate(year, month, day) {
-	  if (!NumberIsFinite(day)) throw new RangeError$1('infinity is out of range');
-	  ({
+	function AddDaysToISODate(isoDate, days) {
+	  let day = isoDate.day + days;
+	  let {
 	    year,
 	    month
-	  } = BalanceISOYearMonth(year, month));
+	  } = BalanceISOYearMonth(isoDate.year, isoDate.month);
 
 	  // The pattern of leap years in the ISO 8601 calendar repeats every 400
 	  // years. So if we have more than 400 years in days, there's no need to
@@ -10906,7 +10925,11 @@
 	}
 	function BalanceISODateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond) {
 	  const time = BalanceTime(hour, minute, second, millisecond, microsecond, nanosecond);
-	  const isoDate = BalanceISODate(year, month, day + time.deltaDays);
+	  const isoDate = AddDaysToISODate({
+	    year,
+	    month,
+	    day
+	  }, time.deltaDays);
 	  return CombineISODateAndTimeRecord(isoDate, time);
 	}
 	function BalanceTime(hour, minute, second, millisecond, microsecond, nanosecond) {
@@ -11068,7 +11091,7 @@
 	  const fields = [y, mon, w, d, h, min, s, ms, µs, ns];
 	  for (let index = 0; index < fields.length; index++) {
 	    const prop = fields[index];
-	    if (!NumberIsFinite(prop)) throw new RangeError$1('infinite values not allowed as duration fields');
+	    assert(NumberIsFinite(prop), 'infinite values not allowed as duration fields');
 	    const propSign = MathSign(prop);
 	    if (propSign !== 0) {
 	      if (sign !== 0 && propSign !== sign) throw new RangeError$1('mixed-sign values not allowed as duration fields');
@@ -11265,7 +11288,7 @@
 	  // back-off a day from date2 so that the signs of the date and time diff match
 	  let adjustedDate = isoDateTime2.isoDate;
 	  if (dateSign === timeSign) {
-	    adjustedDate = BalanceISODate(adjustedDate.year, adjustedDate.month, adjustedDate.day + timeSign);
+	    adjustedDate = AddDaysToISODate(adjustedDate, timeSign);
 	    timeDuration = timeDuration.add24HourDays(-timeSign);
 	  }
 	  const dateLargestUnit = LargerOfTwoTemporalUnits('day', largestUnit);
@@ -11283,7 +11306,7 @@
 	    date: ZeroDateDuration(),
 	    time: TimeDuration.ZERO
 	  };
-	  const sign = nsDiff.lt(0) ? -1 : 1;
+	  const sign = nsDiff.lt(0) ? 1 : -1;
 
 	  // Convert start/end instants to datetimes
 	  const isoDtStart = GetISODateTimeFor(timeZone, ns1);
@@ -11317,17 +11340,17 @@
 	  // Only the forward direction allows for an additional 1 day correction caused by a push-forward
 	  // 'compatible' DST transition causing the wall-clock to overshoot again.
 	  // This max value is inclusive.
-	  let maxDayCorrection = sign === 1 ? 2 : 1;
+	  let maxDayCorrection = sign === -1 ? 2 : 1;
 
 	  // Detect ISO wall-clock overshoot.
 	  // If the diff of the ISO wall-clock times is opposite to the overall diff's sign,
 	  // we are guaranteed to need at least one day correction.
 	  let timeDuration = DifferenceTime(isoDtStart.time, isoDtEnd.time);
-	  if (timeDuration.sign() === -sign) {
+	  if (timeDuration.sign() === sign) {
 	    dayCorrection++;
 	  }
 	  for (; dayCorrection <= maxDayCorrection; dayCorrection++) {
-	    const intermediateDate = BalanceISODate(isoDtEnd.isoDate.year, isoDtEnd.isoDate.month, isoDtEnd.isoDate.day - dayCorrection * sign);
+	    const intermediateDate = AddDaysToISODate(isoDtEnd.isoDate, dayCorrection * sign);
 
 	    // Incorporate time parts from dtStart
 	    intermediateDateTime = CombineISODateAndTimeRecord(intermediateDate, isoDtStart.time);
@@ -11340,7 +11363,7 @@
 
 	    // Did intermediateNs NOT surpass ns2?
 	    // If so, exit the loop with success (without incrementing dayCorrection past maxDayCorrection)
-	    if (timeDuration.sign() !== -sign) {
+	    if (timeDuration.sign() !== sign) {
 	      break;
 	    }
 	  }
@@ -11388,7 +11411,7 @@
 	      {
 	        const yearsMonths = AdjustDateDurationRecord(duration.date, 0, 0);
 	        const weeksStart = CalendarDateAdd(calendar, isoDateTime.isoDate, yearsMonths, 'constrain');
-	        const weeksEnd = BalanceISODate(weeksStart.year, weeksStart.month, weeksStart.day + duration.date.days);
+	        const weeksEnd = AddDaysToISODate(weeksStart, duration.date.days);
 	        const untilResult = CalendarDateUntil(calendar, weeksStart, weeksEnd, 'week');
 	        const weeks = RoundNumberToIncrement(duration.date.weeks + untilResult.weeks, increment, 'trunc');
 	        r1 = weeks;
@@ -11522,7 +11545,7 @@
 	  // Apply to origin, output start/end of the day as PlainDateTimes
 	  const start = CalendarDateAdd(calendar, isoDateTime.isoDate, duration.date, 'constrain');
 	  const startDateTime = CombineISODateAndTimeRecord(start, isoDateTime.time);
-	  const endDate = BalanceISODate(start.year, start.month, start.day + sign);
+	  const endDate = AddDaysToISODate(start, sign);
 	  const endDateTime = CombineISODateAndTimeRecord(endDate, isoDateTime.time);
 
 	  // Compute the epoch-nanosecond start/end of the final whole-day interval
@@ -12085,7 +12108,7 @@
 	    const nextMonth = CalendarDateAdd(calendar, startDate, {
 	      months: 1
 	    }, 'constrain');
-	    startDate = BalanceISODate(nextMonth.year, nextMonth.month, nextMonth.day - 1);
+	    startDate = AddDaysToISODate(nextMonth, -1);
 	  }
 	  const durationToAdd = ToDateDurationRecordWithoutTime(duration);
 	  RejectDateRange(startDate);
@@ -12143,13 +12166,8 @@
 	}
 	function RoundISODateTime(isoDateTime, increment, unit, roundingMode) {
 	  AssertISODateTimeWithinLimits(isoDateTime);
-	  const {
-	    year,
-	    month,
-	    day
-	  } = isoDateTime.isoDate;
 	  const time = RoundTime(isoDateTime.time, increment, unit, roundingMode);
-	  const isoDate = BalanceISODate(year, month, day + time.deltaDays);
+	  const isoDate = AddDaysToISODate(isoDateTime.isoDate, time.deltaDays);
 	  return CombineISODateAndTimeRecord(isoDate, time);
 	}
 	function RoundTime(_ref9, increment, unit, roundingMode) {
@@ -12488,9 +12506,6 @@
 	  }
 	  return false;
 	}
-	function addDaysISO(isoDate, days) {
-	  return BalanceISODate(isoDate.year, isoDate.month, isoDate.day + days);
-	}
 	const impl = {};
 	impl['iso8601'] = {
 	  resolveFields(fields, type) {
@@ -12551,22 +12566,14 @@
 	      year,
 	      month
 	    } = BalanceISOYearMonth(year, month));
-	    ({
-	      year,
-	      month,
-	      day
-	    } = RegulateISODate(year, month, day, overflow));
-	    day += days + 7 * weeks;
-	    return BalanceISODate(year, month, day);
+	    const intermediate = RegulateISODate(year, month, day, overflow);
+	    days += 7 * weeks;
+	    return AddDaysToISODate(intermediate, days);
 	  },
 	  dateUntil(one, two, largestUnit) {
 	    const sign = -CompareISODate(one, two);
-	    if (sign === 0) return {
-	      years: 0,
-	      months: 0,
-	      weeks: 0,
-	      days: 0
-	    };
+	    // This case was checked in CalendarDateUntil
+	    assert(sign !== 0);
 	    let years = 0;
 	    let months = 0;
 	    if (largestUnit === 'year' || largestUnit === 'month') {
@@ -13375,7 +13382,7 @@
 	      // that's currently worked around by a custom calendarToIsoDate
 	      // implementation in those calendars. So this optimization should be safe
 	      // for all ICU calendars.
-	      let testIsoEstimate = addDaysISO(isoEstimate, diffDays);
+	      let testIsoEstimate = AddDaysToISODate(isoEstimate, diffDays);
 	      if (date.day > this.minimumMonthLength(date)) {
 	        // There's a chance that the calendar date is out of range. Throw or
 	        // constrain if so.
@@ -13385,7 +13392,7 @@
 	            throw new RangeError$1(`day ${day} does not exist in month ${month} of year ${year}`);
 	          }
 	          // Back up a day at a time until we're not hanging over the month end
-	          testIsoEstimate = addDaysISO(testIsoEstimate, -1);
+	          testIsoEstimate = AddDaysToISODate(testIsoEstimate, -1);
 	          testCalendarDate = this.isoToCalendarDate(testIsoEstimate, cache);
 	        }
 	      }
@@ -13396,7 +13403,7 @@
 	    let diff = simpleDateDiff(date, roundtripEstimate);
 	    if (diff.years !== 0 || diff.months !== 0 || diff.days !== 0) {
 	      const diffTotalDaysEstimate = diff.years * 365 + diff.months * 30 + diff.days;
-	      isoEstimate = clampISODate(addDaysISO(isoEstimate, diffTotalDaysEstimate));
+	      isoEstimate = clampISODate(AddDaysToISODate(isoEstimate, diffTotalDaysEstimate));
 	      roundtripEstimate = this.isoToCalendarDate(isoEstimate, cache);
 	      diff = simpleDateDiff(date, roundtripEstimate);
 	      if (diff.years === 0 && diff.months === 0) {
@@ -13409,7 +13416,7 @@
 	    // distance to the target, starting with 8 days per step.
 	    let increment = 8;
 	    while (sign) {
-	      isoEstimate = addDaysISO(isoEstimate, sign * increment);
+	      isoEstimate = AddDaysToISODate(isoEstimate, sign * increment);
 	      const oldRoundtripEstimate = roundtripEstimate;
 	      roundtripEstimate = this.isoToCalendarDate(isoEstimate, cache);
 	      const oldSign = sign;
@@ -13438,7 +13445,7 @@
 	              // To constrain, pick the earliest value
 	              const order = this.compareCalendarDates(roundtripEstimate, oldRoundtripEstimate);
 	              // If current value is larger, then back up to the previous value.
-	              if (order > 0) isoEstimate = addDaysISO(isoEstimate, -1);
+	              if (order > 0) isoEstimate = AddDaysToISODate(isoEstimate, -1);
 	              sign = 0;
 	            }
 	          }
@@ -13467,7 +13474,7 @@
 	  },
 	  addDaysCalendar(calendarDate, days, cache) {
 	    const isoDate = this.calendarToIsoDate(calendarDate, 'constrain', cache);
-	    const addedIso = addDaysISO(isoDate, days);
+	    const addedIso = AddDaysToISODate(isoDate, days);
 	    const addedCalendar = this.isoToCalendarDate(addedIso, cache);
 	    return addedCalendar;
 	  },
@@ -13482,7 +13489,7 @@
 	      const oldCalendarDate = calendarDate;
 	      const days = months < 0 ? -MathMax(day, this.daysInPreviousMonth(calendarDate, cache)) : this.daysInMonth(calendarDate, cache);
 	      const isoDate = this.calendarToIsoDate(calendarDate, 'constrain', cache);
-	      let addedIso = addDaysISO(isoDate, days);
+	      let addedIso = AddDaysToISODate(isoDate, days);
 	      calendarDate = this.isoToCalendarDate(addedIso, cache);
 
 	      // Normally, we can advance one month by adding the number of days in the
@@ -13493,7 +13500,7 @@
 	      if (months > 0) {
 	        const monthsInOldYear = this.monthsInYear(oldCalendarDate, cache);
 	        while (calendarDate.month - 1 !== month % monthsInOldYear) {
-	          addedIso = addDaysISO(addedIso, -1);
+	          addedIso = AddDaysToISODate(addedIso, -1);
 	          calendarDate = this.isoToCalendarDate(addedIso, cache);
 	        }
 	      }
@@ -13563,15 +13570,8 @@
 	        {
 	          // Sign is -1 if calendarTwo < calendarOne, 1 if calendarTwo > calendarOne
 	          const sign = this.compareCalendarDates(calendarTwo, calendarOne);
-	          // If dates are equal, return 0 date duration
-	          if (!sign) {
-	            return {
-	              years: 0,
-	              months: 0,
-	              weeks: 0,
-	              days: 0
-	            };
-	          }
+	          // If dates were equal, this would have been checked in CalendarDateUntil
+	          assert(sign, 'equal dates should have been checked earlier');
 	          // Take the difference between the years of the two dates
 	          const diffYears = calendarTwo.year - calendarOne.year;
 	          // Take the difference between the days of the two dates
@@ -13688,11 +13688,11 @@
 	    // Add enough days to get into the next month, without skipping it
 	    const increment = day <= max - min ? max : min;
 	    const isoDate = this.calendarToIsoDate(calendarDate, 'constrain', cache);
-	    const addedIsoDate = addDaysISO(isoDate, increment);
+	    const addedIsoDate = AddDaysToISODate(isoDate, increment);
 	    const addedCalendarDate = this.isoToCalendarDate(addedIsoDate, cache);
 
 	    // Now back up to the last day of the original month
-	    const endOfMonthIso = addDaysISO(addedIsoDate, -addedCalendarDate.day);
+	    const endOfMonthIso = AddDaysToISODate(addedIsoDate, -addedCalendarDate.day);
 	    const endOfMonthCalendar = this.isoToCalendarDate(endOfMonthIso, cache);
 	    return endOfMonthCalendar.day;
 	  },
@@ -13719,7 +13719,7 @@
 	    const max = this.maximumMonthLength(previousMonthDate);
 	    if (min === max) return max;
 	    const isoDate = this.calendarToIsoDate(calendarDate, 'constrain', cache);
-	    const lastDayOfPreviousMonthIso = addDaysISO(isoDate, -day);
+	    const lastDayOfPreviousMonthIso = AddDaysToISODate(isoDate, -day);
 	    const lastDayOfPreviousMonthCalendar = this.isoToCalendarDate(lastDayOfPreviousMonthIso, cache);
 	    return lastDayOfPreviousMonthCalendar.day;
 	  },
@@ -13837,7 +13837,7 @@
 	    } = calendarDate;
 	    const monthCode = calendarDate.monthCode ?? this.getMonthCode(year, month);
 	    const daysInMonth = this.monthLengths[monthCode];
-	    if (daysInMonth === undefined) throw new RangeError$1(`unmatched Hebrew month: ${month}`);
+	    assert(daysInMonth, `missing daysInMonth for Hebrew month ${monthCode}`);
 	    return typeof daysInMonth === 'number' ? daysInMonth : daysInMonth[minOrMax];
 	  },
 	  maxLengthOfMonthCodeInAnyYear(monthCode) {
@@ -14265,7 +14265,7 @@
 	      month
 	    } = calendarDate;
 	    let monthInfo = this.months[month];
-	    if (monthInfo === undefined) throw new RangeError$1(`Invalid month: ${month}`);
+	    assert(monthInfo, `getMonthInfo called on date with invalid month ${month}`);
 	    if (this.inLeapYear(calendarDate) && monthInfo.leap) monthInfo = monthInfo.leap;
 	    return monthInfo;
 	  },
@@ -14277,7 +14277,11 @@
 	    const isoYear = calendarDate.year + 78 + (monthInfo.nextYear ? 1 : 0);
 	    const isoMonth = monthInfo.month;
 	    const isoDay = monthInfo.day;
-	    const isoDate = BalanceISODate(isoYear, isoMonth, isoDay + calendarDate.day - 1);
+	    const isoDate = AddDaysToISODate({
+	      year: isoYear,
+	      month: isoMonth,
+	      day: isoDay
+	    }, calendarDate.day - 1);
 	    return isoDate;
 	  },
 	  // https://bugs.chromium.org/p/v8/issues/detail?id=10529 causes Intl's Indian
@@ -14344,18 +14348,12 @@
 	 * ```
 	 * */
 	function adjustEras(eras) {
-	  if (eras.length === 0) {
-	    throw new RangeError$1('Invalid era data: eras are required');
-	  }
-	  if (eras.length === 1 && eras[0].reverseOf) {
-	    throw new RangeError$1('Invalid era data: anchor era cannot count years backwards');
-	  }
-	  if (eras.length === 1 && !eras[0].code) {
-	    throw new RangeError$1('Invalid era data: at least one named era is required');
-	  }
-	  if (Call$1(ArrayPrototypeFilter, eras, [e => e.reverseOf != null]).length > 1) {
-	    throw new RangeError$1('Invalid era data: only one era can count years backwards');
-	  }
+	  // It's an internal error if the eras data are malformed
+	  assert(eras.length > 0, 'Invalid era data: eras are required');
+	  assert(!(eras.length === 1 && eras[0].reverseOf), 'Invalid era data: anchor era cannot count years backwards');
+	  assert(!(eras.length === 1 && !eras[0].code), 'Invalid era data: at least one named era is required');
+	  const moreThanOneReverseOf = Call$1(ArrayPrototypeFilter, eras, [e => e.reverseOf != null]).length > 1;
+	  assert(!moreThanOneReverseOf, 'Invalid era data: only one era can count years backwards');
 
 	  // Find the "anchor era" which is the era used for (era-less) `year`. Reversed
 	  // eras can never be anchors. The era without an `anchorEpoch` property is the
@@ -14363,13 +14361,13 @@
 	  let anchorEra;
 	  Call$1(ArrayPrototypeForEach, eras, [e => {
 	    if (e.isAnchor || !e.anchorEpoch && !e.reverseOf) {
-	      if (anchorEra) throw new RangeError$1('Invalid era data: cannot have multiple anchor eras');
+	      assert(!anchorEra, 'Invalid era data: cannot have multiple anchor eras');
 	      anchorEra = e;
 	      e.anchorEpoch = {
 	        year: e.hasYearZero ? 0 : 1
 	      };
-	    } else if (!e.code) {
-	      throw new RangeError$1('If era name is blank, it must be the anchor era');
+	    } else {
+	      assert(e.code, 'Invalid era data: if era name is blank, it must be the anchor era');
 	    }
 	  }]);
 
@@ -14387,9 +14385,7 @@
 	    } = e;
 	    if (reverseOf) {
 	      const reversedEra = Call$1(ArrayPrototypeFind, eras, [era => era.code === reverseOf]);
-	      if (reversedEra === undefined) {
-	        throw new RangeError$1(`Invalid era data: unmatched reverseOf era: ${reverseOf}`);
-	      }
+	      assert(reversedEra, `Invalid era data: unmatched reverseOf era: ${reverseOf}`);
 	      e.reverseOf = reversedEra;
 	      e.anchorEpoch = reversedEra.anchorEpoch;
 	      e.isoEpoch = reversedEra.isoEpoch;
@@ -14404,7 +14400,7 @@
 	  Call$1(ArrayPrototypeSort, eras, [(e1, e2) => {
 	    if (e1.reverseOf) return 1;
 	    if (e2.reverseOf) return -1;
-	    if (!e1.isoEpoch || !e2.isoEpoch) throw new RangeError$1('Invalid era data: missing ISO epoch');
+	    assert(e1.isoEpoch && e2.isoEpoch, 'Invalid era data: missing ISO epoch');
 	    return e2.isoEpoch.year - e1.isoEpoch.year;
 	  }]);
 
@@ -14412,9 +14408,7 @@
 	  // being reversed.
 	  const lastEraReversed = eras[eras.length - 1].reverseOf;
 	  if (lastEraReversed) {
-	    if (lastEraReversed !== eras[eras.length - 2]) {
-	      throw new RangeError$1('Invalid era data: invalid reverse-sign era');
-	    }
+	    assert(lastEraReversed === eras[eras.length - 2], 'Invalid era data: invalid reverse-sign era');
 	  }
 
 	  // Finally, add a "genericName" property in the format "era{n} where `n` is
@@ -14798,9 +14792,7 @@
 	      year
 	    } = calendarDate;
 	    const matchingMonthEntry = this.getMonthList(year, cache)[month];
-	    if (matchingMonthEntry === undefined) {
-	      throw new RangeError$1(`Invalid month ${month} in ${this.id} year ${year}`);
-	    }
+	    assert(matchingMonthEntry, `Invalid month ${month} in ${this.id} year ${year}`);
 	    return matchingMonthEntry.daysInMonth;
 	  },
 	  daysInPreviousMonth(calendarDate, cache) {
@@ -14870,9 +14862,7 @@
 	    }
 	  },
 	  getMonthList(calendarYear, cache) {
-	    if (calendarYear === undefined) {
-	      throw new TypeError$1('Missing year');
-	    }
+	    assert(calendarYear !== undefined, 'getMonthList called on undefined year');
 	    const key = OneObjectCache.generateMonthListKey(calendarYear);
 	    const cached = cache.get(key);
 	    if (cached) return cached;
@@ -14983,7 +14973,7 @@
 	      day,
 	      monthCode
 	    } = calendarDate;
-	    if (year === undefined) throw new TypeError$1('Missing property: year');
+	    assert(year !== undefined, `adjustCalendarDate called on date ${JSONStringify(calendarDate)} with undefined year property`);
 	    if (fromLegacyDate) {
 	      // Legacy Date output returns a string that's an integer with an optional
 	      // "bis" suffix used only by the Chinese/Dangi calendar to indicate a leap
@@ -14992,9 +14982,7 @@
 	      const monthCode = CreateMonthCode(month, monthExtra !== undefined);
 	      const months = this.getMonthList(year, cache);
 	      month = months[monthCode];
-	      if (month === undefined) {
-	        throw new RangeError$1(`Unmatched month ${month}${monthExtra || ''} in ${this.id} year ${year}`);
-	      }
+	      assert(month !== undefined, `Unmatched month ${month}${monthExtra || ''} in ${this.id} year ${year}`);
 	      return {
 	        year,
 	        month,
@@ -15033,14 +15021,12 @@
 	          day = ConstrainToRange(day, 1, this.maximumMonthLength());
 	        }
 	        monthCode = months[month].monthCode;
-	        if (monthCode === undefined) {
-	          throw new RangeError$1(`Invalid month ${month} in ${this.id} year ${year}`);
-	        }
+	        assert(monthCode !== undefined, `Invalid month ${month} in ${this.id} year ${year}`);
 	      } else {
 	        // Both month and monthCode are present. Make sure they don't conflict.
 	        const months = this.getMonthList(year, cache);
 	        const monthIndex = months[monthCode];
-	        if (!monthIndex) throw new RangeError$1(`Unmatched monthCode ${monthCode} in ${this.id} year ${year}`);
+	        assert(monthIndex, `Unmatched monthCode ${monthCode} in ${this.id} year ${year}`);
 	        if (month !== monthIndex) {
 	          throw new RangeError$1(`monthCode ${monthCode} doesn't correspond to month ${month} in ${this.id} year ${year}`);
 	        }
@@ -15535,10 +15521,7 @@
 	  b = toDateTimeFormattable(b);
 	  let formatArgs = [a, b];
 	  let formatter;
-	  if (isTemporalObject(a) !== isTemporalObject(b)) {
-	    throw new TypeError$1('Intl.DateTimeFormat.formatRange accepts two values of the same type');
-	  }
-	  if (isTemporalObject(a)) {
+	  if (isTemporalObject(a) || isTemporalObject(b)) {
 	    if (!sameTemporalType(a, b)) {
 	      throw new TypeError$1('Intl.DateTimeFormat.formatRange accepts two values of the same type');
 	    }
@@ -15568,10 +15551,7 @@
 	  b = toDateTimeFormattable(b);
 	  let formatArgs = [a, b];
 	  let formatter;
-	  if (isTemporalObject(a) !== isTemporalObject(b)) {
-	    throw new TypeError$1('Intl.DateTimeFormat.formatRangeToParts accepts two values of the same type');
-	  }
-	  if (isTemporalObject(a)) {
+	  if (isTemporalObject(a) || isTemporalObject(b)) {
 	    if (!sameTemporalType(a, b)) {
 	      throw new TypeError$1('Intl.DateTimeFormat.formatRangeToParts accepts two values of the same type');
 	    }
@@ -17677,7 +17657,7 @@
 	    if (!IsTemporalZonedDateTime(this)) throw new TypeError$1('invalid receiver');
 	    const timeZone = GetSlot(this, TIME_ZONE);
 	    const today = dateTime(this).isoDate;
-	    const tomorrow = BalanceISODate(today.year, today.month, today.day + 1);
+	    const tomorrow = AddDaysToISODate(today, 1);
 	    const todayNs = GetStartOfDay(timeZone, today);
 	    const tomorrowNs = GetStartOfDay(timeZone, tomorrow);
 	    const diff = TimeDuration.fromEpochNsDiff(tomorrowNs, todayNs);
@@ -17836,7 +17816,7 @@
 	      // Compute Instants for start-of-day and end-of-day
 	      // Determine how far the current instant has progressed through this span.
 	      const dateStart = iso.isoDate;
-	      const dateEnd = BalanceISODate(dateStart.year, dateStart.month, dateStart.day + 1);
+	      const dateEnd = AddDaysToISODate(dateStart, 1);
 	      const startNs = GetStartOfDay(timeZone, dateStart);
 	      assert(thisNs.geq(startNs), 'cannot produce an instant during a day that occurs before start-of-day instant');
 	      const endNs = GetStartOfDay(timeZone, dateEnd);
@@ -17947,7 +17927,7 @@
 	      directionParam = GetOptionsObject(directionParam);
 	    }
 	    const direction = GetDirectionOption(directionParam);
-	    if (direction === undefined) throw new TypeError$1('direction option is required');
+	    assert(direction !== undefined);
 
 	    // Offset time zones or UTC have no transitions
 	    if (IsOffsetTimeZoneIdentifier(timeZone) || timeZone === 'UTC') {
